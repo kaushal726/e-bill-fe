@@ -28,6 +28,10 @@ type Props = {
   onExport?: () => void
   onDownloadTemplate?: () => void
   onRefresh?: () => void
+  refreshLabel?: string
+  refreshIcon?: React.ElementType
+  showUtilityActions?: boolean
+  showRefreshAction?: boolean
 }
 
 export function TableActionsPopover({
@@ -39,6 +43,10 @@ export function TableActionsPopover({
   onExport,
   onDownloadTemplate,
   onRefresh,
+  refreshLabel = 'Refresh List',
+  refreshIcon = RotateCcw,
+  showUtilityActions = true,
+  showRefreshAction = true,
 }: Props) {
   const [sortOpen, setSortOpen] = useState(false)
   const hasSortOptions = sortOptions.length > 0
@@ -138,9 +146,11 @@ export function TableActionsPopover({
             <ActionItem icon={Upload} label="Import" onClick={onImport} />
             <ActionItem icon={Download} label="Export" onClick={onExport} />
             <ActionItem icon={Download} label="Download Template" onClick={onDownloadTemplate} />
-            <ActionItem icon={Settings} label="Preferences" />
-            <ActionItem icon={RotateCcw} label="Refresh List" onClick={onRefresh} />
-            <ActionItem icon={Columns} label="Reset Column Width" />
+            {showUtilityActions ? <ActionItem icon={Settings} label="Preferences" /> : null}
+            {showRefreshAction ? (
+              <ActionItem icon={refreshIcon} label={refreshLabel} onClick={onRefresh} />
+            ) : null}
+            {showUtilityActions ? <ActionItem icon={Columns} label="Reset Column Width" /> : null}
           </VStack>
         </Popover.Content>
       </Popover.Positioner>
@@ -163,6 +173,7 @@ function ActionItem({
       py="2"
       borderRadius="md"
       cursor="pointer"
+      color="gray.900"
       _hover={{ bg: 'gray.100' }}
       onClick={onClick}
     >

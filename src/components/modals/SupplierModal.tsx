@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Dialog, Portal, Button, Input, Field, useMediaQuery } from '@chakra-ui/react'
+import { Dialog, Portal, Button, Input, Field, useMediaQuery, SimpleGrid } from '@chakra-ui/react'
 import { X } from 'lucide-react'
 import { useSupplierActions } from '@/hooks/useSupplierActions'
 
@@ -7,6 +7,8 @@ export interface SupplierFormValues {
   name: string
   mobileNumber: string
   address?: string
+  pendingAmount?: number
+  totalPurchaseAmount?: number
 }
 
 interface SupplierDialogProps {
@@ -28,6 +30,8 @@ export default function SupplierModal({
     name: '',
     mobileNumber: '',
     address: '',
+    pendingAmount: 0,
+    totalPurchaseAmount: 0,
   })
 
   const { createSupplier, updateSupplier } = useSupplierActions()
@@ -40,13 +44,24 @@ export default function SupplierModal({
         name: '',
         mobileNumber: '',
         address: '',
+        pendingAmount: 0,
+        totalPurchaseAmount: 0,
       })
     }
   }, [defaultValues, mode])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value, type } = e.target
-    setFormData((prev) => ({ ...prev, [name]: type === 'number' ? Number(value) : value }))
+
+    if (type === 'number') {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value === '' ? undefined : Number(value),
+      }))
+      return
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   function handleSubmit() {
@@ -54,6 +69,8 @@ export default function SupplierModal({
       name: formData.name.trim(),
       mobileNumber: formData.mobileNumber.trim(),
       address: formData.address?.trim() || '',
+      pendingAmount: formData.pendingAmount ?? 0,
+      totalPurchaseAmount: formData.totalPurchaseAmount ?? 0,
     }
 
     if (mode === 'add') {
@@ -111,33 +128,35 @@ export default function SupplierModal({
             </Dialog.Header>
 
             <Dialog.Body pt={4}>
-              <Field.Root mb={3}>
-                <Field.Label color="gray.700" fontWeight="600">
-                  Supplier Name
-                </Field.Label>
-                <Input
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Enter supplier name"
-                  bg="white"
-                  borderColor="gray.200"
-                />
-              </Field.Root>
+              <SimpleGrid columns={{ base: 1, md: 2 }} gap={3} mb={3}>
+                <Field.Root>
+                  <Field.Label color="gray.700" fontWeight="600">
+                    Supplier Name
+                  </Field.Label>
+                  <Input
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Enter supplier name"
+                    bg="white"
+                    borderColor="gray.200"
+                  />
+                </Field.Root>
 
-              <Field.Root mb={3}>
-                <Field.Label color="gray.700" fontWeight="600">
-                  Mobile Number
-                </Field.Label>
-                <Input
-                  name="mobileNumber"
-                  value={formData.mobileNumber}
-                  onChange={handleChange}
-                  placeholder="10-digit mobile number"
-                  bg="white"
-                  borderColor="gray.200"
-                />
-              </Field.Root>
+                <Field.Root>
+                  <Field.Label color="gray.700" fontWeight="600">
+                    Mobile Number
+                  </Field.Label>
+                  <Input
+                    name="mobileNumber"
+                    value={formData.mobileNumber}
+                    onChange={handleChange}
+                    placeholder="10-digit mobile number"
+                    bg="white"
+                    borderColor="gray.200"
+                  />
+                </Field.Root>
+              </SimpleGrid>
 
               <Field.Root mb={3}>
                 <Field.Label color="gray.700" fontWeight="600">
@@ -152,6 +171,40 @@ export default function SupplierModal({
                   borderColor="gray.200"
                 />
               </Field.Root>
+
+              <SimpleGrid columns={{ base: 1, md: 2 }} gap={3} mb={3}>
+                <Field.Root>
+                  <Field.Label color="gray.700" fontWeight="600">
+                    Pending Amount
+                  </Field.Label>
+                  <Input
+                    name="pendingAmount"
+                    type="number"
+                    min={0}
+                    value={formData.pendingAmount ?? ''}
+                    onChange={handleChange}
+                    placeholder="Enter pending amount"
+                    bg="white"
+                    borderColor="gray.200"
+                  />
+                </Field.Root>
+
+                <Field.Root>
+                  <Field.Label color="gray.700" fontWeight="600">
+                    Total Purchase Amount
+                  </Field.Label>
+                  <Input
+                    name="totalPurchaseAmount"
+                    type="number"
+                    min={0}
+                    value={formData.totalPurchaseAmount ?? ''}
+                    onChange={handleChange}
+                    placeholder="Enter total purchased"
+                    bg="white"
+                    borderColor="gray.200"
+                  />
+                </Field.Root>
+              </SimpleGrid>
             </Dialog.Body>
 
             <Dialog.Footer gap={3} justifyContent="flex-end">

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Dialog, Portal, Button, Input, Field, useMediaQuery } from '@chakra-ui/react'
+import { Dialog, Portal, Button, Input, Field, useMediaQuery, SimpleGrid } from '@chakra-ui/react'
 import { useCustomerActions } from '@/hooks/useCustomerActions'
 import { X } from 'lucide-react'
 
@@ -124,66 +124,70 @@ export default function CustomerDialog({
             </Dialog.Header>
 
             <Dialog.Body pt={4}>
-              <Field.Root mb={3}>
-                <Field.Label color="gray.700" fontWeight="600">
-                  Full Name
-                </Field.Label>
-                <Input
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Enter Full Name"
-                  bg="white"
-                  borderColor="gray.200"
-                />
-              </Field.Root>
-
-              <Field.Root mb={3}>
-                <Field.Label color="gray.700" fontWeight="600">
-                  Phone Number
-                </Field.Label>
-                <Input
-                  name="mobileNumber"
-                  value={formData.mobileNumber}
-                  onChange={handleChange}
-                  placeholder="10-digit mobile number"
-                  bg="white"
-                  borderColor="gray.200"
-                />
-              </Field.Root>
-
-              <Field.Root mb={3}>
-                <Field.Label color="gray.700" fontWeight="600">
-                  Email
-                </Field.Label>
-                <Input
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Enter email"
-                  bg="white"
-                  borderColor="gray.200"
-                />
-              </Field.Root>
-
-              {mode === 'edit' && (
-                <Field.Root mb={3}>
+              <SimpleGrid columns={{ base: 1, md: 2 }} gap={3} mb={3}>
+                <Field.Root>
                   <Field.Label color="gray.700" fontWeight="600">
-                    Balance
+                    Full Name
                   </Field.Label>
                   <Input
-                    name="balance"
-                    value={formData.balance}
+                    name="name"
+                    value={formData.name}
                     onChange={handleChange}
-                    placeholder="Enter Balance"
-                    type="number"
+                    placeholder="Enter Full Name"
                     bg="white"
                     borderColor="gray.200"
                   />
                 </Field.Root>
-              )}
 
-              <Field.Root flex={1}>
+                <Field.Root>
+                  <Field.Label color="gray.700" fontWeight="600">
+                    Phone Number
+                  </Field.Label>
+                  <Input
+                    name="mobileNumber"
+                    value={formData.mobileNumber}
+                    onChange={handleChange}
+                    placeholder="10-digit mobile number"
+                    bg="white"
+                    borderColor="gray.200"
+                  />
+                </Field.Root>
+              </SimpleGrid>
+
+              <SimpleGrid columns={{ base: 1, md: mode === 'edit' ? 2 : 1 }} gap={3} mb={3}>
+                <Field.Root>
+                  <Field.Label color="gray.700" fontWeight="600">
+                    Email
+                  </Field.Label>
+                  <Input
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="Enter email"
+                    bg="white"
+                    borderColor="gray.200"
+                  />
+                </Field.Root>
+
+                {mode === 'edit' && (
+                  <Field.Root>
+                    <Field.Label color="gray.700" fontWeight="600">
+                      Balance
+                    </Field.Label>
+                    <Input
+                      name="balance"
+                      value={formData.balance}
+                      onChange={handleChange}
+                      placeholder="Enter Balance"
+                      type="number"
+                      bg="white"
+                      borderColor="gray.200"
+                    />
+                  </Field.Root>
+                )}
+              </SimpleGrid>
+
+              <Field.Root>
                 <Field.Label color="gray.700" fontWeight="600">
                   Address
                 </Field.Label>
@@ -198,12 +202,16 @@ export default function CustomerDialog({
               </Field.Root>
             </Dialog.Body>
 
-            <Dialog.Footer gap={3} justifyContent="flex-end">
+            <Dialog.Footer
+              gap={3}
+              justifyContent="flex-end"
+              flexDirection={{ base: 'column-reverse', md: 'row' }}
+            >
               <Dialog.ActionTrigger asChild>
                 <Button
                   variant="outline"
                   minW="120px"
-                  width={'50%'}
+                  width={{ base: '100%', md: '50%' }}
                   color="black"
                   borderColor="black"
                   bg="white"
@@ -216,7 +224,7 @@ export default function CustomerDialog({
                 minW="160px"
                 bg="black"
                 color="white"
-                width={'50%'}
+                width={{ base: '100%', md: '50%' }}
                 loading={createCustomer.isPending || updateCustomer.isPending}
                 onClick={handleSubmit}
               >

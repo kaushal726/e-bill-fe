@@ -9,7 +9,6 @@ export type SupplierItem = {
   address?: string
   pendingAmount?: number
   totalPurchaseAmount?: number
-  lastTransactionDate?: string | null
   createdAt?: string
   updatedAt?: string
 }

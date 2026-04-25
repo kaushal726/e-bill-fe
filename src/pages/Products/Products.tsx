@@ -11,7 +11,7 @@ import { useProductActions } from '@/hooks/useProductActions'
 import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 import { useDispatch } from 'react-redux'
 import { TableActionsPopover } from '@/components/popovers/TableActionsPopover'
-import { Plus } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 import { CommonTable } from '@/components/common/CommonTable'
 import { useProductImport } from '@/hooks/useProductImport'
 import { useProductExport } from '@/hooks/useProductExport'
@@ -109,8 +109,11 @@ function Products() {
     {
       key: 'supplier',
       header: 'Supplier',
-      width: '220px',
-      render: (p: any) => p.supplierId?.name ?? '—',
+      width: '240px',
+      render: (p: any) =>
+        p.supplierId?.name
+          ? `${p.supplierId.name}${p.supplierId.mobileNumber ? ` (${p.supplierId.mobileNumber})` : ''}`
+          : '—',
     },
 
     {
@@ -160,10 +163,22 @@ function Products() {
       render: (p: any) => `${Number(p.gstPercentage ?? 0).toFixed(2)}%`,
     },
     {
+      key: 'gstInclusive',
+      header: 'GST Inclusive',
+      width: '130px',
+      render: (p: any) => (p.gstInclusive ? 'Yes' : 'No'),
+    },
+    {
       key: 'discountType',
       header: 'Discount Type',
       width: '130px',
       render: (p: any) => (p.discountType === 'percentage' ? '%' : '₹'),
+    },
+    {
+      key: 'discountValue',
+      header: 'Discount Value',
+      width: '130px',
+      render: (p: any) => Number(p.discountValue ?? 0),
     },
   ]
 
@@ -250,6 +265,9 @@ function Products() {
     totalPages: pagination.totalPages,
   }
 
+  const activeSortLabel =
+    PRODUCT_SORT_OPTIONS.find((option) => option.key === sortBy)?.label || 'Name'
+
   return (
     <>
       <input
@@ -320,15 +338,15 @@ function Products() {
             />
             <Text
               fontSize="xs"
-              color="gray.600"
+              color="gray.700"
               bg="white"
               px={3}
               py={2}
               borderRadius="10px"
               border="1px solid"
-              borderColor="gray.100"
+              borderColor="gray.200"
             >
-              Sorted by {sortBy} ({sortOrder})
+              Sorted by {activeSortLabel} ({sortOrder === 'asc' ? 'Ascending' : 'Descending'})
             </Text>
           </HStack>
           <HStack gap={2}>
@@ -353,6 +371,24 @@ function Products() {
               </HStack>
             </Button>
 
+            <Button
+              variant="outline"
+              bg="white"
+              color="black"
+              borderColor="gray.300"
+              h="38px"
+              px={3}
+              _hover={{ bg: 'gray.50' }}
+              onClick={() => queryClient.invalidateQueries({ queryKey: ['products'] })}
+            >
+              <HStack gap={1}>
+                <RefreshCw size={16} />
+                <Text fontSize="sm" fontWeight="700" color="black">
+                  Sync Products
+                </Text>
+              </HStack>
+            </Button>
+
             <TableActionsPopover
               sortBy={sortBy}
               sortOrder={sortOrder}
@@ -364,21 +400,13 @@ function Products() {
               }}
               onImport={handleImportClick}
               onExport={handleExportClick}
-              onRefresh={() => queryClient.invalidateQueries({ queryKey: ['products'] })}
+              showUtilityActions={false}
+              showRefreshAction={false}
             />
           </HStack>
         </Flex>
 
-        <Box
-          bg="rgba(255,255,255,0.86)"
-          mt={6}
-          rounded="2xl"
-          shadow="lightGray"
-          border="1px solid"
-          borderColor="whiteAlpha.800"
-          w="100%"
-          p={{ base: 2, md: 4 }}
-        >
+        <Box mt={5} w="100%" p={0}>
           <CommonTable
             columns={productColumns}
             data={products}
@@ -393,11 +421,11 @@ function Products() {
           justify="center"
           align="center"
           mt={3}
-          p={3}
-          bg="rgba(255,255,255,0.86)"
-          borderRadius="18px"
+          p={2}
+          bg="white"
+          borderRadius="12px"
           border="1px solid"
-          borderColor="whiteAlpha.800"
+          borderColor="gray.200"
           gap={2}
           width="100%"
           flexWrap="wrap"

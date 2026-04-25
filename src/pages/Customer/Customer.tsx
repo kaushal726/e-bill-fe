@@ -8,7 +8,7 @@ import { useCustomerActions } from '@/hooks/useCustomerActions'
 import ConfirmDeleteDialog from '@/components/modals/ConfirmDelete'
 import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 import { useDispatch } from 'react-redux'
-import { Plus } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 import { TableActionsPopover } from '@/components/popovers/TableActionsPopover'
 import { CommonTable } from '@/components/common/CommonTable'
 
@@ -326,6 +326,24 @@ function Customers() {
               </HStack>
             </Button>
 
+            <Button
+              variant="outline"
+              bg="white"
+              color="black"
+              borderColor="gray.300"
+              h="38px"
+              px={3}
+              _hover={{ bg: 'gray.50' }}
+              onClick={() => queryClient.invalidateQueries({ queryKey: ['customers'] })}
+            >
+              <HStack gap={1}>
+                <RefreshCw size={16} />
+                <Text fontSize="sm" fontWeight="700" color="black">
+                  Sync Customers
+                </Text>
+              </HStack>
+            </Button>
+
             <TableActionsPopover
               sortBy={sortBy}
               sortOrder={sortOrder}
@@ -338,7 +356,8 @@ function Customers() {
               onImport={handleImportClick}
               onExport={handleExportClick}
               onDownloadTemplate={handleDownloadTemplate}
-              onRefresh={() => queryClient.invalidateQueries({ queryKey: ['customers'] })}
+              showUtilityActions={false}
+              showRefreshAction={false}
             />
           </HStack>
         </Flex>

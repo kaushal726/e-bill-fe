@@ -1,7 +1,7 @@
 import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack } from '@chakra-ui/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { Plus, Download, Upload } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toaster } from '@/components/ui/toaster'
 import { API } from '@/api/api'
@@ -13,9 +13,17 @@ import { ExpandableSearch } from '@/components/common/ExpandableSearch'
 import { FaEdit, FaTrash } from '@/components/icons'
 import ConfirmDeleteDialog from '@/components/modals/ConfirmDelete'
 import SupplierModal, { SupplierFormValues } from '@/components/modals/SupplierModal'
+import { TableActionsPopover } from '@/components/popovers/TableActionsPopover'
 
 import { useSupplier } from '@/hooks/useSupplier'
 import { useSupplierActions } from '@/hooks/useSupplierActions'
+
+type SupplierSortKey =
+  | 'name'
+  | 'mobileNumber'
+  | 'pendingAmount'
+  | 'totalPurchaseAmount'
+  | 'createdAt'
 
 const downloadFile = (blob: Blob, filename: string) => {
   const url = window.URL.createObjectURL(blob)
@@ -27,6 +35,14 @@ const downloadFile = (blob: Blob, filename: string) => {
   link.parentNode?.removeChild(link)
   window.URL.revokeObjectURL(url)
 }
+
+const SUPPLIER_SORT_OPTIONS: Array<{ key: SupplierSortKey; label: string }> = [
+  { key: 'name', label: 'Name' },
+  { key: 'mobileNumber', label: 'Mobile Number' },
+  { key: 'pendingAmount', label: 'Pending Amount' },
+  { key: 'totalPurchaseAmount', label: 'Total Purchased' },
+  { key: 'createdAt', label: 'Created Date' },
+]
 
 function Suppliers() {
   const dispatch = useDispatch()
@@ -42,9 +58,7 @@ function Suppliers() {
 
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState(search)
-  const [sortBy, setSortBy] = useState<'name' | 'mobileNumber' | 'pendingAmount' | 'createdAt'>(
-    'name',
-  )
+  const [sortBy, setSortBy] = useState<SupplierSortKey>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   const [page, setPage] = useState(1)
@@ -71,6 +85,7 @@ function Suppliers() {
 
   const handleExport = async () => {
     try {
+      if (isExporting) return
       setIsExporting(true)
       const res = await API.get(API_ENDPOINTS.SUPPLIERS.EXPORT, {
         responseType: 'blob',
@@ -87,6 +102,7 @@ function Suppliers() {
 
   const handleImport = async (file: File) => {
     try {
+      if (isImporting) return
       setIsImporting(true)
       const formData = new FormData()
       formData.append('file', file)
@@ -95,10 +111,9 @@ function Suppliers() {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
 
-      const { created = 0, updated = 0, failed = 0, errors = [] } = res.data?.data || {}
+      const { created = 0, updated = 0, failed = 0 } = res.data?.data || {}
 
       if (failed > 0) {
-        const errorMsg = errors.map((e: any) => `${e.supplier}: ${e.reason}`).join(', ')
         toaster.error({
           title: `Import completed with errors`,
           description: `Created: ${created}, Updated: ${updated}, Failed: ${failed}`,
@@ -122,6 +137,11 @@ function Suppliers() {
         fileInputRef.current.value = ''
       }
     }
+  }
+
+  const handleImportClick = () => {
+    if (isImporting) return
+    fileInputRef.current?.click()
   }
 
   useEffect(() => {
@@ -163,6 +183,10 @@ function Suppliers() {
         return ((a.pendingAmount || 0) - (b.pendingAmount || 0)) * dir
       }
 
+      if (sortBy === 'totalPurchaseAmount') {
+        return ((a.totalPurchaseAmount || 0) - (b.totalPurchaseAmount || 0)) * dir
+      }
+
       if (sortBy === 'createdAt') {
         return (
           ((new Date(a.createdAt || 0).getTime() || 0) -
@@ -172,9 +196,13 @@ function Suppliers() {
       }
 
       return (
-        String(a[sortBy] || '').localeCompare(String(b[sortBy] || ''), 'en', {
-          sensitivity: 'base',
-        }) * dir
+        String(a[sortBy as keyof typeof a] || '').localeCompare(
+          String(b[sortBy as keyof typeof b] || ''),
+          'en',
+          {
+            sensitivity: 'base',
+          },
+        ) * dir
       )
     })
 
@@ -199,6 +227,9 @@ function Suppliers() {
     activePage: pagination.currentPage,
     totalPages: pagination.totalPages,
   }
+
+  const activeSortLabel =
+    SUPPLIER_SORT_OPTIONS.find((option) => option.key === sortBy)?.label || 'Name'
 
   const supplierColumns = [
     {
@@ -247,13 +278,6 @@ function Suppliers() {
           maximumFractionDigits: 0,
         }).format(Number(s.totalPurchaseAmount || 0)),
     },
-    {
-      key: 'lastTransactionDate',
-      header: 'Last Transaction',
-      width: '170px',
-      render: (s: any) =>
-        s.lastTransactionDate ? new Date(s.lastTransactionDate).toLocaleDateString('en-IN') : '—',
-    },
   ]
 
   const supplierActions = [
@@ -267,6 +291,8 @@ function Suppliers() {
           name: item.name,
           mobileNumber: item.mobileNumber,
           address: item.address,
+          pendingAmount: Number(item.pendingAmount || 0),
+          totalPurchaseAmount: Number(item.totalPurchaseAmount || 0),
         })
         setOpen(true)
       },
@@ -343,37 +369,18 @@ function Suppliers() {
               expandedWidth="300px"
             />
 
-            <HStack bg="white" border="1px solid" borderColor="gray.100" borderRadius="10px" p={1}>
-              <Button
-                size="sm"
-                variant={sortBy === 'name' ? 'solid' : 'ghost'}
-                bg={sortBy === 'name' ? 'gray.900' : 'transparent'}
-                color={sortBy === 'name' ? 'white' : 'gray.700'}
-                _hover={{ bg: sortBy === 'name' ? 'gray.900' : 'gray.100' }}
-                onClick={() => setSortBy('name')}
-              >
-                Name
-              </Button>
-              <Button
-                size="sm"
-                variant={sortBy === 'pendingAmount' ? 'solid' : 'ghost'}
-                bg={sortBy === 'pendingAmount' ? 'gray.900' : 'transparent'}
-                color={sortBy === 'pendingAmount' ? 'white' : 'gray.700'}
-                _hover={{ bg: sortBy === 'pendingAmount' ? 'gray.900' : 'gray.100' }}
-                onClick={() => setSortBy('pendingAmount')}
-              >
-                Pending
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                color="gray.700"
-                _hover={{ bg: 'gray.100' }}
-                onClick={() => setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))}
-              >
-                {sortOrder === 'asc' ? 'Asc' : 'Desc'}
-              </Button>
-            </HStack>
+            <Text
+              fontSize="xs"
+              color="gray.700"
+              bg="white"
+              px={3}
+              py={2}
+              borderRadius="10px"
+              border="1px solid"
+              borderColor="gray.200"
+            >
+              Sorted by {activeSortLabel} ({sortOrder === 'asc' ? 'Ascending' : 'Descending'})
+            </Text>
           </HStack>
 
           <HStack gap={2}>
@@ -399,65 +406,40 @@ function Suppliers() {
             </Button>
 
             <Button
-              bg="blue.600"
-              color="white"
-              h="38px"
-              px={3}
-              isLoading={isImporting}
-              _hover={{ bg: 'blue.700' }}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <HStack gap={1}>
-                <Upload size={16} />
-                <Text fontSize="sm" fontWeight="700">
-                  Import
-                </Text>
-              </HStack>
-            </Button>
-
-            <Button
-              bg="green.600"
-              color="white"
-              h="38px"
-              px={3}
-              isLoading={isExporting}
-              _hover={{ bg: 'green.700' }}
-              onClick={handleExport}
-            >
-              <HStack gap={1}>
-                <Download size={16} />
-                <Text fontSize="sm" fontWeight="700">
-                  Export
-                </Text>
-              </HStack>
-            </Button>
-
-            <Button
               variant="outline"
               bg="white"
+              color="black"
               borderColor="gray.300"
               h="38px"
               px={3}
               _hover={{ bg: 'gray.50' }}
-              onClick={handleDownloadTemplate}
+              onClick={() => queryClient.invalidateQueries({ queryKey: ['suppliers'] })}
             >
               <HStack gap={1}>
-                <Download size={16} />
-                <Text fontSize="sm" fontWeight="700">
-                  Template
+                <RefreshCw size={16} />
+                <Text fontSize="sm" fontWeight="700" color="black">
+                  Sync Suppliers
                 </Text>
               </HStack>
             </Button>
 
-            <Button
-              variant="outline"
-              bg="white"
-              borderColor="gray.300"
-              h="38px"
-              onClick={() => queryClient.invalidateQueries({ queryKey: ['suppliers'] })}
-            >
-              Refresh
-            </Button>
+            <TableActionsPopover
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              sortOptions={SUPPLIER_SORT_OPTIONS}
+              onSortChange={(key, order) => {
+                setPage(1)
+                setSortBy(key as SupplierSortKey)
+                setSortOrder(order)
+              }}
+              onImport={handleImportClick}
+              onExport={handleExport}
+              onDownloadTemplate={handleDownloadTemplate}
+              refreshLabel="Sync Suppliers"
+              refreshIcon={RefreshCw}
+              showUtilityActions={false}
+              showRefreshAction={false}
+            />
 
             <input
               ref={fileInputRef}

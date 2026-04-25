@@ -11,6 +11,7 @@ export type SupplierPayload = {
   mobileNumber: string
   address?: string
   pendingAmount?: number
+  totalPurchaseAmount?: number
 }
 
 export const useSupplierActions = () => {

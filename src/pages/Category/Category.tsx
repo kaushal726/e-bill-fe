@@ -1,6 +1,6 @@
 import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack } from '@chakra-ui/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -281,6 +281,24 @@ function Categories() {
               </HStack>
             </Button>
 
+            <Button
+              variant="outline"
+              bg="white"
+              color="black"
+              borderColor="gray.300"
+              h="38px"
+              px={3}
+              _hover={{ bg: 'gray.50' }}
+              onClick={() => queryClient.invalidateQueries({ queryKey: ['categories'] })}
+            >
+              <HStack gap={1}>
+                <RefreshCw size={16} />
+                <Text fontSize="sm" fontWeight="700" color="black">
+                  Sync Category
+                </Text>
+              </HStack>
+            </Button>
+
             <TableActionsPopover
               sortBy={sortBy}
               sortOrder={sortOrder}
@@ -292,7 +310,8 @@ function Categories() {
               }}
               onImport={handleImportClick}
               onExport={handleExportClick}
-              onRefresh={() => queryClient.invalidateQueries({ queryKey: ['categories'] })}
+              showUtilityActions={false}
+              showRefreshAction={false}
             />
           </HStack>
         </Flex>

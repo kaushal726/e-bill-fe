@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Dialog, Portal, Button, Input, Field, useMediaQuery } from '@chakra-ui/react'
+import { Dialog, Portal, Button, Input, Field, useMediaQuery, VStack } from '@chakra-ui/react'
 import { X } from 'lucide-react'
 import { useCategoryActions } from '@/hooks/useCategoryActions'
 
@@ -98,31 +98,37 @@ export default function CategoryModal({
             </Dialog.Header>
 
             <Dialog.Body pt={4} zIndex={2000}>
-              <Field.Root mb={3}>
-                <Field.Label color="gray.700" fontWeight="600">
-                  Category Name
-                </Field.Label>
-                <Input
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Enter Category Name"
-                  bg="white"
-                  borderColor="gray.200"
-                  _focus={{
-                    borderColor: 'gray.500',
-                    boxShadow: '0 0 0 1px var(--chakra-colors-gray-500)',
-                  }}
-                />
-              </Field.Root>
+              <VStack align="stretch" gap={3}>
+                <Field.Root>
+                  <Field.Label color="gray.700" fontWeight="600">
+                    Category Name
+                  </Field.Label>
+                  <Input
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Enter Category Name"
+                    bg="white"
+                    borderColor="gray.200"
+                    _focus={{
+                      borderColor: 'gray.500',
+                      boxShadow: '0 0 0 1px var(--chakra-colors-gray-500)',
+                    }}
+                  />
+                </Field.Root>
+              </VStack>
             </Dialog.Body>
 
-            <Dialog.Footer gap={3} justifyContent="flex-end">
+            <Dialog.Footer
+              gap={3}
+              justifyContent="flex-end"
+              flexDirection={{ base: 'column-reverse', md: 'row' }}
+            >
               <Dialog.ActionTrigger asChild>
                 <Button
                   variant="outline"
                   minW="120px"
-                  width="50%"
+                  width={{ base: '100%', md: '50%' }}
                   color="black"
                   borderColor="black"
                   bg="white"
@@ -135,7 +141,7 @@ export default function CategoryModal({
                 minW="160px"
                 bg="black"
                 color="white"
-                width="50%"
+                width={{ base: '100%', md: '50%' }}
                 loading={createCategory.isPending || updateCategory.isPending}
                 onClick={handleSubmit}
               >

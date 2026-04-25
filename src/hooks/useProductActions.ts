@@ -16,6 +16,11 @@ export type ProductPayload = {
   sellingPrice: number
   unit?: string
   stock?: number
+  gstPercentage?: number
+  gstInclusive?: boolean
+  discountType?: 'percentage' | 'absolute'
+  discountValue?: number
+  minimumStock?: number
 }
 
 export const useProductActions = () => {

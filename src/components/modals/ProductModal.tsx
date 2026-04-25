@@ -528,12 +528,16 @@ export default function ProductDialog({
               </SimpleGrid>
             </Dialog.Body>
 
-            <Dialog.Footer gap={3} justifyContent="flex-end">
+            <Dialog.Footer
+              gap={3}
+              justifyContent="flex-end"
+              flexDirection={{ base: 'column-reverse', md: 'row' }}
+            >
               <Dialog.ActionTrigger asChild>
                 <Button
                   variant="outline"
                   minW="120px"
-                  width="50%"
+                  width={{ base: '100%', md: '50%' }}
                   color="black"
                   borderColor="black"
                   bg="white"
@@ -542,7 +546,7 @@ export default function ProductDialog({
                 </Button>
               </Dialog.ActionTrigger>
               <Button
-                width="50%"
+                width={{ base: '100%', md: '50%' }}
                 bg="black"
                 color="white"
                 loading={createProduct.isPending || updateProduct.isPending}

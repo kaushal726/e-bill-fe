@@ -21,6 +21,7 @@ const sections = [
       { label: 'Customers', path: '/customer', icon: FiUsers },
       { label: 'Bill', path: '/bill', icon: MdReceiptLong },
       { label: 'Payments', path: '/payments', icon: MdPayments },
+      { label: 'Payment Analytics', path: '/payments/analytics', icon: MdPayments },
     ],
   },
   {

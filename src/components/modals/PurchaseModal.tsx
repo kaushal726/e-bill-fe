@@ -12,6 +12,7 @@ import {
   Text,
   Box,
   Tabs,
+  SimpleGrid,
 } from '@chakra-ui/react'
 import { createListCollection } from '@chakra-ui/react'
 import { Plus, Trash2, X } from 'lucide-react'
@@ -20,12 +21,16 @@ import { useSupplier } from '@/hooks/useSupplier'
 import { useProducts } from '@/hooks/useProducts'
 import { usePurchaseActions } from '@/hooks/usePurchaseActions'
 import { DateInputWithIcon } from '@/components/common/DateInputWithIcon'
+import { toaster } from '@/components/ui/toaster'
 
 type PurchaseFormItem = {
   productId: string
   quantity: string
   price: string
   discount?: string
+  discountType?: 'percentage' | 'absolute'
+  discountValue?: string
+  gstPercentage?: string
 }
 
 export interface PurchaseFormValues {
@@ -59,7 +64,17 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
     purchaseDate: '',
     paidAmount: '0',
     note: '',
-    items: [{ productId: '', quantity: '1', price: '0', discount: '0' }],
+    items: [
+      {
+        productId: '',
+        quantity: '1',
+        price: '0',
+        discount: '',
+        discountType: 'absolute',
+        discountValue: '0',
+        gstPercentage: '0',
+      },
+    ],
   })
 
   const { data: suppliers = [] } = useSupplier()
@@ -104,26 +119,62 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
       purchaseDate: getTodayDate(),
       paidAmount: '0',
       note: '',
-      items: [{ productId: '', quantity: '1', price: '0', discount: '0' }],
+      items: [
+        {
+          productId: '',
+          quantity: '1',
+          price: '0',
+          discount: '',
+          discountType: 'absolute',
+          discountValue: '0',
+          gstPercentage: '0',
+        },
+      ],
     })
   }, [defaultValues, open])
 
+  const getItemPreview = (item: PurchaseFormItem) => {
+    const qty = Number(item.quantity || 0)
+    const price = Number(item.price || 0)
+    const discountInput = item.discount?.trim() || ''
+    const discountValue =
+      discountInput === '' ? Number(item.discountValue || 0) : Number(discountInput)
+    const gstRate = Number(item.gstPercentage || 0)
+    const discountType = item.discountType === 'percentage' ? 'percentage' : 'absolute'
+
+    const safeQty = Number.isFinite(qty) ? Math.max(0, qty) : 0
+    const safePrice = Number.isFinite(price) ? Math.max(0, price) : 0
+    const normalizedDiscount = Number.isFinite(discountValue) ? Math.max(0, discountValue) : 0
+
+    const discountPerUnit =
+      discountType === 'percentage' ? (safePrice * normalizedDiscount) / 100 : normalizedDiscount
+    const safeDiscount = Math.min(Math.max(discountPerUnit, 0), safePrice)
+    const priceAfterDiscount = safePrice - safeDiscount
+    const gstPerUnit = (priceAfterDiscount * gstRate) / 100
+    const cgstPerUnit = gstPerUnit / 2
+    const sgstPerUnit = gstPerUnit / 2
+    const finalUnitPrice = priceAfterDiscount + gstPerUnit
+    const lineTotal = finalUnitPrice * safeQty
+
+    return {
+      discountValue: normalizedDiscount,
+      discountPerUnit: safeDiscount,
+      priceAfterDiscount,
+      gstPerUnit,
+      cgstPerUnit,
+      sgstPerUnit,
+      finalUnitPrice,
+      lineTotal,
+    }
+  }
+
   const totals = useMemo(() => {
     const totalAmount = formData.items.reduce((sum, item) => {
-      const qty = Number(item.quantity || 0)
-      const price = Number(item.price || 0)
-      const discount = Number(item.discount || 0)
-      const safeQty = Number.isFinite(qty) ? qty : 0
-      const safePrice = Number.isFinite(price) ? price : 0
-      const safeDiscount = Number.isFinite(discount) ? discount : 0
-      return sum + safeQty * Math.max(0, safePrice - safeDiscount)
+      return sum + getItemPreview(item).lineTotal
     }, 0)
 
-    const paidAmount = Number(formData.paidAmount || 0)
-    const dueAmount = totalAmount - (Number.isFinite(paidAmount) ? paidAmount : 0)
-
-    return { totalAmount, dueAmount }
-  }, [formData.items, formData.paidAmount])
+    return { totalAmount }
+  }, [formData.items, products])
 
   function updateItem(index: number, key: keyof PurchaseFormItem, value: string) {
     setFormData((prev) => {
@@ -136,7 +187,18 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
   function addItem() {
     setFormData((prev) => ({
       ...prev,
-      items: [...prev.items, { productId: '', quantity: '1', price: '0', discount: '0' }],
+      items: [
+        ...prev.items,
+        {
+          productId: '',
+          quantity: '1',
+          price: '0',
+          discount: '',
+          discountType: 'absolute',
+          discountValue: '0',
+          gstPercentage: '0',
+        },
+      ],
     }))
   }
 
@@ -148,6 +210,47 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
   }
 
   function handleSubmit() {
+    const validItems = formData.items.filter((item) => item.productId && Number(item.quantity) > 0)
+
+    if (validItems.length === 0) {
+      toaster.error({ title: 'Add at least one valid item' })
+      return
+    }
+
+    for (let i = 0; i < validItems.length; i += 1) {
+      const item = validItems[i]
+      const quantity = Number(item.quantity || 0)
+      const price = Number(item.price || 0)
+      const hasDiscount = (item.discount?.trim() || '') !== ''
+      const discount = Number(item.discount)
+      const discountType = item.discountType === 'percentage' ? 'percentage' : 'absolute'
+
+      if (!item.productId) {
+        toaster.error({ title: `Item ${i + 1}: product is required` })
+        return
+      }
+      if (!Number.isFinite(quantity) || quantity <= 0) {
+        toaster.error({ title: `Item ${i + 1}: quantity must be greater than 0` })
+        return
+      }
+      if (!Number.isFinite(price) || price < 0) {
+        toaster.error({ title: `Item ${i + 1}: price cannot be negative` })
+        return
+      }
+      if (hasDiscount && (!Number.isFinite(discount) || discount < 0)) {
+        toaster.error({ title: `Item ${i + 1}: discount cannot be negative` })
+        return
+      }
+      if (hasDiscount && discountType === 'percentage' && discount > 100) {
+        toaster.error({ title: `Item ${i + 1}: percentage discount cannot be more than 100` })
+        return
+      }
+      if (hasDiscount && discountType === 'absolute' && discount > price) {
+        toaster.error({ title: `Item ${i + 1}: absolute discount cannot be greater than price` })
+        return
+      }
+    }
+
     const payload = {
       ...(supplierMode === 'registered' && formData.supplierId
         ? { supplierId: formData.supplierId }
@@ -156,14 +259,12 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
       purchaseDate: formData.purchaseDate || undefined,
       paidAmount: Number(formData.paidAmount || 0),
       note: formData.note?.trim() || '',
-      items: formData.items
-        .filter((item) => item.productId && Number(item.quantity) > 0)
-        .map((item) => ({
-          productId: item.productId,
-          quantity: Number(item.quantity),
-          price: Number(item.price || 0),
-          discount: Number(item.discount || 0),
-        })),
+      items: validItems.map((item) => ({
+        productId: item.productId,
+        quantity: Number(item.quantity),
+        price: Number(item.price || 0),
+        ...(item.discount?.trim() ? { discount: Number(item.discount) } : {}),
+      })),
     }
 
     createPurchase.mutate(payload, { onSuccess: onClose })
@@ -178,7 +279,7 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
         if (!details.open) onClose()
       }}
       scrollBehavior="inside"
-      size={isLarge ? 'xl' : 'full'}
+      size={isLarge ? 'lg' : 'full'}
       placement={isLarge ? 'center' : 'bottom'}
     >
       <Portal>
@@ -189,7 +290,7 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
             rounded="2xl"
             shadow="xl"
             p={4}
-            maxW="840px"
+            maxW="760px"
             w="100%"
             maxH="90vh"
             border="1px solid"
@@ -216,7 +317,7 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
                 '&::-webkit-scrollbar': { display: 'none' },
               }}
             >
-              <VStack align="stretch" gap={4}>
+              <VStack align="stretch" gap={3}>
                 {/* Supplier */}
                 <Box border="1px solid" borderColor="gray.200" borderRadius="14px" p={3} bg="white">
                   <Text fontSize="sm" fontWeight="700" color="gray.800" mb={3}>
@@ -277,8 +378,8 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
                   )}
                 </Box>
 
-                <HStack gap={3} align="start" flexWrap="wrap">
-                  <Field.Root flex="1" minW="180px">
+                <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
+                  <Field.Root>
                     <Field.Label color="gray.700" fontWeight="600">
                       Invoice Number
                     </Field.Label>
@@ -293,7 +394,7 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
                     />
                   </Field.Root>
 
-                  <Field.Root flex="1" minW="180px">
+                  <Field.Root>
                     <Field.Label color="gray.700" fontWeight="600">
                       Purchase Date
                     </Field.Label>
@@ -305,7 +406,7 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
                       }
                     />
                   </Field.Root>
-                </HStack>
+                </SimpleGrid>
 
                 <Box border="1px solid" borderColor="gray.200" borderRadius="14px" p={3} bg="white">
                   <HStack justify="space-between" mb={3}>
@@ -329,110 +430,199 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
 
                   <VStack align="stretch" gap={2}>
                     {formData.items.map((item, index) => (
-                      <HStack key={index} gap={2} align="end" flexWrap="wrap">
-                        <Field.Root flex="2" minW="220px">
-                          <Field.Label fontSize="xs" color="gray.600">
-                            Product
-                          </Field.Label>
-                          <Select.Root
-                            collection={productCollection}
-                            value={item.productId ? [item.productId] : []}
-                            onValueChange={(details) => {
-                              const selectedProductId = details.value[0] || ''
-                              updateItem(index, 'productId', selectedProductId)
+                      <Box
+                        key={index}
+                        border="1px solid"
+                        borderColor="gray.100"
+                        borderRadius="10px"
+                        p={2.5}
+                      >
+                        <SimpleGrid columns={{ base: 1, md: 12 }} gap={2} alignItems="end">
+                          <Box gridColumn={{ base: 'span 1', md: 'span 7' }}>
+                            <Field.Root>
+                              <Field.Label fontSize="xs" color="gray.600">
+                                Product
+                              </Field.Label>
+                              <Select.Root
+                                collection={productCollection}
+                                value={item.productId ? [item.productId] : []}
+                                onValueChange={(details) => {
+                                  const selectedProductId = details.value[0] || ''
+                                  const product = products.find(
+                                    (p: any) => p._id === selectedProductId,
+                                  )
 
-                              // Auto-fill price from product's purchasePrice
-                              if (selectedProductId) {
-                                const product = products.find(
-                                  (p: any) => p._id === selectedProductId,
-                                )
-                                if (product) {
-                                  updateItem(index, 'price', String(product.purchasePrice || 0))
-                                }
-                              }
-                            }}
-                            positioning={{ strategy: 'fixed', hideWhenDetached: true }}
-                          >
-                            <Select.HiddenSelect />
-                            <Select.Control>
-                              <Select.Trigger>
-                                <Select.ValueText placeholder="Select product" />
-                              </Select.Trigger>
-                              <Select.IndicatorGroup>
-                                <Select.Indicator />
-                              </Select.IndicatorGroup>
-                            </Select.Control>
-                            <Select.Positioner>
-                              <Select.Content bg="white">
-                                {productCollection.items.map((collectionItem) => (
-                                  <Select.Item item={collectionItem} key={collectionItem.value}>
-                                    {collectionItem.label}
-                                    <Select.ItemIndicator />
-                                  </Select.Item>
-                                ))}
-                              </Select.Content>
-                            </Select.Positioner>
-                          </Select.Root>
-                        </Field.Root>
+                                  setFormData((prev) => {
+                                    const items = [...prev.items]
+                                    items[index] = {
+                                      ...items[index],
+                                      productId: selectedProductId,
+                                      price: product
+                                        ? String(product.purchasePrice || 0)
+                                        : items[index].price,
+                                      discount: items[index].discount?.trim()
+                                        ? items[index].discount
+                                        : String(product?.discountValue ?? ''),
+                                      discountType:
+                                        product?.discountType === 'percentage'
+                                          ? 'percentage'
+                                          : 'absolute',
+                                      discountValue: String(product?.discountValue ?? 0),
+                                      gstPercentage: String(product?.gstPercentage ?? 0),
+                                    }
+                                    return { ...prev, items }
+                                  })
+                                }}
+                                positioning={{ strategy: 'fixed', hideWhenDetached: true }}
+                              >
+                                <Select.HiddenSelect />
+                                <Select.Control>
+                                  <Select.Trigger>
+                                    <Select.ValueText placeholder="Select product" />
+                                  </Select.Trigger>
+                                  <Select.IndicatorGroup>
+                                    <Select.Indicator />
+                                  </Select.IndicatorGroup>
+                                </Select.Control>
+                                <Select.Positioner>
+                                  <Select.Content bg="white">
+                                    {productCollection.items.map((collectionItem) => (
+                                      <Select.Item item={collectionItem} key={collectionItem.value}>
+                                        {collectionItem.label}
+                                        <Select.ItemIndicator />
+                                      </Select.Item>
+                                    ))}
+                                  </Select.Content>
+                                </Select.Positioner>
+                              </Select.Root>
+                            </Field.Root>
+                          </Box>
 
-                        <Field.Root minW="110px">
-                          <Field.Label fontSize="xs" color="gray.600">
-                            Qty
-                          </Field.Label>
-                          <Input
-                            type="number"
-                            min={1}
-                            value={item.quantity}
-                            onChange={(e) => updateItem(index, 'quantity', e.target.value)}
-                            bg="white"
-                            borderColor="gray.200"
-                          />
-                        </Field.Root>
+                          <Box gridColumn={{ base: 'span 1', md: 'span 2' }}>
+                            <Field.Root>
+                              <Field.Label fontSize="xs" color="gray.600">
+                                Qty
+                              </Field.Label>
+                              <Input
+                                type="number"
+                                min={1}
+                                value={item.quantity}
+                                onChange={(e) => updateItem(index, 'quantity', e.target.value)}
+                                bg="white"
+                                borderColor="gray.200"
+                              />
+                            </Field.Root>
+                          </Box>
 
-                        <Field.Root minW="130px">
-                          <Field.Label fontSize="xs" color="gray.600">
-                            Price
-                          </Field.Label>
-                          <Input
-                            type="number"
-                            min={0}
-                            value={item.price}
-                            onChange={(e) => updateItem(index, 'price', e.target.value)}
-                            bg="white"
-                            borderColor="gray.200"
-                          />
-                        </Field.Root>
+                          <Box gridColumn={{ base: 'span 1', md: 'span 2' }}>
+                            <Button
+                              size="sm"
+                              w="100%"
+                              colorPalette="red"
+                              variant="ghost"
+                              onClick={() => removeItem(index)}
+                              disabled={formData.items.length === 1}
+                            >
+                              <HStack gap={1}>
+                                <Trash2 size={14} />
+                                <Text fontSize="xs">Remove</Text>
+                              </HStack>
+                            </Button>
+                          </Box>
+                        </SimpleGrid>
 
-                        <Field.Root minW="130px">
-                          <Field.Label fontSize="xs" color="gray.600">
-                            Discount
-                          </Field.Label>
-                          <Input
-                            type="number"
-                            min={0}
-                            value={item.discount || '0'}
-                            onChange={(e) => updateItem(index, 'discount', e.target.value)}
-                            bg="white"
-                            borderColor="gray.200"
-                          />
-                        </Field.Root>
+                        <SimpleGrid columns={{ base: 1, md: 3 }} gap={2} mt={2}>
+                          <Field.Root>
+                            <Field.Label fontSize="xs" color="gray.600">
+                              Unit Price (without GST)
+                            </Field.Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              value={item.price}
+                              onChange={(e) => updateItem(index, 'price', e.target.value)}
+                              bg="white"
+                              borderColor="gray.200"
+                            />
+                          </Field.Root>
 
-                        <Button
-                          size="sm"
-                          colorPalette="red"
-                          variant="ghost"
-                          onClick={() => removeItem(index)}
-                          disabled={formData.items.length === 1}
+                          <Field.Root>
+                            <Field.Label fontSize="xs" color="gray.600">
+                              {item.discountType === 'percentage'
+                                ? 'Discount (%)'
+                                : 'Discount (Rs)'}
+                            </Field.Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              value={item.discount || ''}
+                              onChange={(e) => updateItem(index, 'discount', e.target.value)}
+                              bg="white"
+                              borderColor="gray.200"
+                              placeholder="Leave blank for product default"
+                            />
+                          </Field.Root>
+
+                          <Field.Root>
+                            <Field.Label fontSize="xs" color="gray.600">
+                              GST
+                            </Field.Label>
+                            <HStack
+                              h="40px"
+                              px={3}
+                              border="1px solid"
+                              borderColor="gray.200"
+                              borderRadius="md"
+                              bg="gray.50"
+                              justify="space-between"
+                            >
+                              <Text fontSize="xs" color="gray.600">
+                                Fixed from product
+                              </Text>
+                              <Text fontSize="xs" color="gray.700" fontWeight="600">
+                                {Number(item.gstPercentage || 0)}%
+                              </Text>
+                            </HStack>
+                          </Field.Root>
+                        </SimpleGrid>
+
+                        <SimpleGrid
+                          columns={{ base: 1, md: 3 }}
+                          gap={2}
+                          mt={2}
+                          p={2}
+                          borderRadius="8px"
+                          bg="gray.50"
+                          border="1px solid"
+                          borderColor="gray.100"
                         >
-                          <Trash2 size={14} />
-                        </Button>
-                      </HStack>
+                          <Text fontSize="xs" color="gray.700">
+                            Price after discount: INR{' '}
+                            {getItemPreview(item).priceAfterDiscount.toFixed(2)}
+                          </Text>
+                          <Text fontSize="xs" color="gray.700">
+                            GST per unit: INR {getItemPreview(item).gstPerUnit.toFixed(2)}
+                          </Text>
+                          <Text fontSize="xs" color="gray.700">
+                            CGST per unit: INR {getItemPreview(item).cgstPerUnit.toFixed(2)}
+                          </Text>
+                          <Text fontSize="xs" color="gray.700">
+                            SGST per unit: INR {getItemPreview(item).sgstPerUnit.toFixed(2)}
+                          </Text>
+                          <Text fontSize="xs" color="gray.900" fontWeight="600">
+                            Final unit price: INR {getItemPreview(item).finalUnitPrice.toFixed(2)}
+                          </Text>
+                          <Text fontSize="xs" color="gray.900" fontWeight="700">
+                            Item line total: INR {getItemPreview(item).lineTotal.toFixed(2)}
+                          </Text>
+                        </SimpleGrid>
+                      </Box>
                     ))}
                   </VStack>
                 </Box>
 
-                <HStack gap={3} align="start" flexWrap="wrap">
-                  <Field.Root flex="1" minW="180px">
+                <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
+                  <Field.Root>
                     <Field.Label color="gray.700" fontWeight="600">
                       Paid Amount
                     </Field.Label>
@@ -448,7 +638,7 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
                     />
                   </Field.Root>
 
-                  <Field.Root flex="2" minW="220px">
+                  <Field.Root gridColumn={{ base: 'span 1', md: 'span 2' }}>
                     <Field.Label color="gray.700" fontWeight="600">
                       Note
                     </Field.Label>
@@ -460,29 +650,29 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
                       borderColor="gray.200"
                     />
                   </Field.Root>
-                </HStack>
+                </SimpleGrid>
 
                 <HStack justify="space-between" p={3} borderRadius="12px" bg="gray.50">
                   <Text fontSize="sm" fontWeight="600" color="gray.700">
-                    Total: INR {totals.totalAmount.toFixed(2)}
+                    Grand Total: INR {totals.totalAmount.toFixed(2)}
                   </Text>
-                  <Text
-                    fontSize="sm"
-                    fontWeight="700"
-                    color={totals.dueAmount > 0 ? 'orange.600' : 'green.600'}
-                  >
-                    Due: INR {totals.dueAmount.toFixed(2)}
+                  <Text fontSize="xs" color="gray.500">
+                    Preview matches backend purchase calculation flow.
                   </Text>
                 </HStack>
               </VStack>
             </Dialog.Body>
 
-            <Dialog.Footer gap={3} justifyContent="flex-end">
+            <Dialog.Footer
+              gap={2}
+              justifyContent="flex-end"
+              flexDirection={{ base: 'column', sm: 'row' }}
+            >
               <Dialog.ActionTrigger asChild>
                 <Button
                   variant="outline"
                   minW="120px"
-                  width="50%"
+                  w={{ base: '100%', sm: 'auto' }}
                   color="black"
                   borderColor="black"
                   bg="white"
@@ -492,7 +682,7 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
               </Dialog.ActionTrigger>
 
               <Button
-                width="50%"
+                w={{ base: '100%', sm: 'auto' }}
                 bg="black"
                 color="white"
                 loading={createPurchase.isPending}

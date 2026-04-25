@@ -25,7 +25,7 @@ type CommonTableProps<T> = {
 }
 
 const DEFAULT_COLUMN_WIDTH = '160px'
-const ACTION_COLUMN_WIDTH = '140px'
+const ACTION_COLUMN_WIDTH = '180px'
 
 export function CommonTable<T>({
   columns,
@@ -161,7 +161,7 @@ export function CommonTable<T>({
                       py={2}
                     >
                       <HStack gap={1} justify="center" flex="wrap">
-                        {actions.slice(0, 2).map((action, i) => (
+                        {actions.map((action, i) => (
                           <Button
                             key={i}
                             onClick={() => action.onClick(row)}

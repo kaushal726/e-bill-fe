@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Dialog, Portal, Button, Input, Field, useMediaQuery } from '@chakra-ui/react'
+import { Dialog, Portal, Button, Input, Field, Text, useMediaQuery } from '@chakra-ui/react'
 import { X } from 'lucide-react'
 import { usePurchaseActions } from '@/hooks/usePurchaseActions'
 
@@ -71,7 +71,7 @@ export default function PurchasePaymentModal({
           >
             <Dialog.Header px={1}>
               <Dialog.Title fontSize="xl" fontWeight="800" color="gray.900" letterSpacing="-0.02em">
-                Update Purchase Payment
+                Update Purchase
               </Dialog.Title>
 
               <Dialog.CloseTrigger asChild>
@@ -82,6 +82,10 @@ export default function PurchasePaymentModal({
             </Dialog.Header>
 
             <Dialog.Body pt={4}>
+              <Text fontSize="sm" color="gray.600" mb={4}>
+                Only paid amount and note can be updated for an existing purchase.
+              </Text>
+
               <Field.Root mb={3}>
                 <Field.Label color="gray.700" fontWeight="600">
                   Paid Amount
@@ -131,7 +135,7 @@ export default function PurchasePaymentModal({
                 loading={updatePurchase.isPending}
                 onClick={handleSubmit}
               >
-                Save Payment
+                Update Purchase
               </Button>
             </Dialog.Footer>
           </Dialog.Content>

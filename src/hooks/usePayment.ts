@@ -68,6 +68,65 @@ export type PaymentSummary = {
   thisMonthAmount: number
 }
 
+export type AnalyticsPartyRow = {
+  partyId?: string | null
+  partyName: string
+  partyType?: 'registered' | 'anonymous'
+  mobileNumber?: string
+  amount: number
+  totalAmount?: number
+  totalPaid?: number
+  lastTransactionDate?: string
+}
+
+export type PaymentAnalytics = {
+  summary: {
+    totalToCollectFromCustomers: number
+    totalToPaySuppliers: number
+    totalCustomerAdvance: number
+    totalSupplierAdvancePaid: number
+    netOutstanding: number
+    totalPaidToSuppliers: number
+    totalCollectedFromCustomers: number
+    totalPaymentTransactions: number
+    totalPaymentAmount: number
+  }
+  counts: {
+    customerDueCount: number
+    customerAdvanceCount: number
+    supplierDueCount: number
+    supplierAdvanceCount: number
+    supplierPaymentsCount: number
+    customerPaymentsCount: number
+  }
+  paymentModeBreakdown: {
+    cash: number
+    upi: number
+    bank: number
+    other: number
+  }
+  actionables: {
+    topSupplierPayables: AnalyticsPartyRow[]
+    topCustomerReceivables: AnalyticsPartyRow[]
+  }
+  details: {
+    customer: {
+      receivables: AnalyticsPartyRow[]
+      advances: AnalyticsPartyRow[]
+    }
+    supplier: {
+      payables: AnalyticsPartyRow[]
+      advances: AnalyticsPartyRow[]
+    }
+  }
+  recentPayments: PaymentRecord[]
+  meta: {
+    recentLimit: number
+    topLimit: number
+    lastPaymentDate?: string | null
+  }
+}
+
 const getPaymentDues = async (): Promise<PaymentDuesResponse> => {
   const res = await API.get(API_ENDPOINTS.PAYMENT.DUES)
   return (
@@ -124,6 +183,59 @@ const getPaymentSummary = async (): Promise<PaymentSummary> => {
   }
 }
 
+const getPaymentAnalytics = async (): Promise<PaymentAnalytics> => {
+  const res = await API.get(API_ENDPOINTS.PAYMENT.ANALYTICS)
+  const raw = res.data?.data || {}
+
+  return {
+    summary: {
+      totalToCollectFromCustomers: Number(raw?.summary?.totalToCollectFromCustomers || 0),
+      totalToPaySuppliers: Number(raw?.summary?.totalToPaySuppliers || 0),
+      totalCustomerAdvance: Number(raw?.summary?.totalCustomerAdvance || 0),
+      totalSupplierAdvancePaid: Number(raw?.summary?.totalSupplierAdvancePaid || 0),
+      netOutstanding: Number(raw?.summary?.netOutstanding || 0),
+      totalPaidToSuppliers: Number(raw?.summary?.totalPaidToSuppliers || 0),
+      totalCollectedFromCustomers: Number(raw?.summary?.totalCollectedFromCustomers || 0),
+      totalPaymentTransactions: Number(raw?.summary?.totalPaymentTransactions || 0),
+      totalPaymentAmount: Number(raw?.summary?.totalPaymentAmount || 0),
+    },
+    counts: {
+      customerDueCount: Number(raw?.counts?.customerDueCount || 0),
+      customerAdvanceCount: Number(raw?.counts?.customerAdvanceCount || 0),
+      supplierDueCount: Number(raw?.counts?.supplierDueCount || 0),
+      supplierAdvanceCount: Number(raw?.counts?.supplierAdvanceCount || 0),
+      supplierPaymentsCount: Number(raw?.counts?.supplierPaymentsCount || 0),
+      customerPaymentsCount: Number(raw?.counts?.customerPaymentsCount || 0),
+    },
+    paymentModeBreakdown: {
+      cash: Number(raw?.paymentModeBreakdown?.cash || 0),
+      upi: Number(raw?.paymentModeBreakdown?.upi || 0),
+      bank: Number(raw?.paymentModeBreakdown?.bank || 0),
+      other: Number(raw?.paymentModeBreakdown?.other || 0),
+    },
+    actionables: {
+      topSupplierPayables: raw?.actionables?.topSupplierPayables || [],
+      topCustomerReceivables: raw?.actionables?.topCustomerReceivables || [],
+    },
+    details: {
+      customer: {
+        receivables: raw?.details?.customer?.receivables || [],
+        advances: raw?.details?.customer?.advances || [],
+      },
+      supplier: {
+        payables: raw?.details?.supplier?.payables || [],
+        advances: raw?.details?.supplier?.advances || [],
+      },
+    },
+    recentPayments: raw?.recentPayments || [],
+    meta: {
+      recentLimit: Number(raw?.meta?.recentLimit || 20),
+      topLimit: Number(raw?.meta?.topLimit || 20),
+      lastPaymentDate: raw?.meta?.lastPaymentDate || null,
+    },
+  }
+}
+
 export const usePayment = () => {
   return useQuery({
     queryKey: ['payments'],
@@ -145,6 +257,14 @@ export const usePaymentSummary = () => {
   return useQuery({
     queryKey: ['payment-summary'],
     queryFn: getPaymentSummary,
+    retry: false,
+  })
+}
+
+export const usePaymentAnalytics = () => {
+  return useQuery({
+    queryKey: ['payment-analytics'],
+    queryFn: getPaymentAnalytics,
     retry: false,
   })
 }

@@ -8,13 +8,14 @@ const toast = ToasterUtil()
 
 export type PurchaseCreatePayload = {
   supplierId?: string
+  supplierName?: string
   invoiceNumber?: string
   purchaseDate?: string
   items: Array<{
     productId: string
     quantity: number
     price: number
-    sellingPrice?: number
+    discount?: number
   }>
   paidAmount?: number
   note?: string
@@ -54,7 +55,7 @@ export const usePurchaseActions = () => {
 
   const updatePurchase = useMutation({
     mutationFn: ({ purchaseId, payload }: { purchaseId: string; payload: PurchaseUpdatePayload }) =>
-      API.patch(`${API_ENDPOINTS.PURCHASE.UPDATE}/${purchaseId}`, payload).then(
+      API.put(`${API_ENDPOINTS.PURCHASE.UPDATE}/${purchaseId}`, payload).then(
         (res) => res.data?.data ?? res.data,
       ),
 

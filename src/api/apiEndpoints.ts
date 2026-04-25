@@ -69,6 +69,7 @@ export const API_ENDPOINTS = {
     GET_BY_ID: '/purchase',
     UPDATE: '/purchase/update',
     DELETE: '/purchase/delete',
+    INVOICE: '/purchase',
     EXPORT: '/purchase/export',
     IMPORT: '/purchase/import',
     TEMPLATE: '/purchase/template/sample',
@@ -100,6 +101,7 @@ export const API_ENDPOINTS = {
     CREATE: '/payment/create',
     DUES: '/payment/dues',
     SUMMARY: '/payment/summary',
+    ANALYTICS: '/payment/analytics',
     GET_BY_ID: '/payment',
   },
 

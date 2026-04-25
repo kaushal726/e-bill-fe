@@ -1,8 +1,7 @@
 import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack, Badge } from '@chakra-ui/react'
 import { useEffect, useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
-import { Plus, ArrowRight } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
 import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 import { CommonTable } from '@/components/common/CommonTable'
@@ -43,8 +42,6 @@ const Payments = () => {
   const [debouncedSearch, setDebouncedSearch] = useState(search)
   const [page, setPage] = useState(1)
   const limit = 20
-
-  const navigate = useNavigate()
 
   const { data: paymentData = [], isLoading } = usePayment()
   const { data: paymentSummary } = usePaymentSummary()
@@ -270,34 +267,6 @@ const Payments = () => {
             </Text>
           </Box>
         </SimpleGrid>
-
-        {/* Outstanding Dues — View Details card */}
-        <Box
-          mt={3}
-          bg="white"
-          border="1px solid"
-          borderColor="gray.100"
-          borderRadius="16px"
-          p={4}
-          cursor="pointer"
-          _hover={{ borderColor: 'gray.300', shadow: 'sm' }}
-          onClick={() => navigate('/payments/dues')}
-        >
-          <Flex align="center" justify="space-between">
-            <VStack align="start" gap={0.5}>
-              <Text fontSize="sm" fontWeight="700" color="gray.800">
-                Outstanding Dues
-              </Text>
-              <Text fontSize="xs" color="gray.500">
-                See who owes you and who you owe — supplier & customer breakdown
-              </Text>
-            </VStack>
-            <HStack gap={1.5} color="blue.600" fontWeight="600" fontSize="sm">
-              <Text>View Details</Text>
-              <ArrowRight size={15} />
-            </HStack>
-          </Flex>
-        </Box>
 
         <Flex
           justify="space-between"

@@ -21,6 +21,7 @@ const paymentStatusColor = {
   pending: 'orange',
   partial: 'yellow',
   paid: 'green',
+  completed: 'green',
   advance: 'blue',
 } as const
 
@@ -76,6 +77,22 @@ function Purchase() {
     }
   }
 
+  const handleDownloadInvoice = async (purchase: any) => {
+    try {
+      const res = await API.get(`${API_ENDPOINTS.PURCHASE.INVOICE}/${purchase._id}/invoice`, {
+        responseType: 'blob',
+      })
+
+      const safeInvoice = String(purchase.invoiceNumber || purchase._id || 'purchase-invoice')
+        .replace(/[^a-zA-Z0-9-_]+/g, '_')
+        .trim()
+      downloadFile(new Blob([res.data], { type: 'application/pdf' }), `${safeInvoice}.pdf`)
+      toaster.success({ title: 'Purchase invoice downloaded successfully' })
+    } catch (error) {
+      toaster.error({ title: 'Failed to download purchase invoice' })
+    }
+  }
+
   useEffect(() => {
     const id = setTimeout(() => setDebouncedSearch(search), 350)
     return () => clearTimeout(id)
@@ -103,7 +120,12 @@ function Purchase() {
     if (!keyword) return purchaseData
 
     return purchaseData.filter((p) => {
-      const haystack = [p.invoiceNumber, p.supplierId?.name || '', p.paymentStatus, p.note || '']
+      const haystack = [
+        p.invoiceNumber,
+        p.supplierId?.name || p.supplierName || '',
+        p.paymentStatus,
+        p.note || '',
+      ]
         .join(' ')
         .toLowerCase()
 
@@ -141,7 +163,7 @@ function Purchase() {
       key: 'supplier',
       header: 'Supplier',
       width: '200px',
-      render: (p: any) => p.supplierId?.name || 'Walk-in / No Supplier',
+      render: (p: any) => p.supplierId?.name || p.supplierName || 'Walk-in / No Supplier',
     },
     {
       key: 'purchaseDate',
@@ -207,7 +229,14 @@ function Purchase() {
 
   const purchaseActions = [
     {
-      label: 'Update Payment',
+      label: 'Download Invoice',
+      icon: <Download size={14} color="#0f172a" />,
+      onClick: (item: any) => {
+        handleDownloadInvoice(item)
+      },
+    },
+    {
+      label: 'Update Purchase',
       icon: <FaEdit size="14px" color="#0f172a" />,
       onClick: (item: any) => {
         setActivePurchaseId(item._id)

@@ -1,4 +1,4 @@
-import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack, Badge } from '@chakra-ui/react'
+﻿import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack, Badge } from '@chakra-ui/react'
 import { useEffect, useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
 
@@ -162,8 +162,15 @@ const Stocks = () => {
         px={{ base: 4, md: 6 }}
         py={{ base: 4, md: 5 }}
       >
-        <SimpleGrid columns={{ base: 2, md: 4 }} gap={3}>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+        <SimpleGrid columns={{ base: 2, sm: 3, lg: 4, xl: 6 }} gap={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Records
             </Text>
@@ -171,7 +178,14 @@ const Stocks = () => {
               {summary.total}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Total In
             </Text>
@@ -179,7 +193,14 @@ const Stocks = () => {
               {summary.totalIn}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Total Out
             </Text>
@@ -187,7 +208,14 @@ const Stocks = () => {
               {summary.totalOut}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Net Movement
             </Text>
@@ -310,7 +338,7 @@ const Stocks = () => {
               <Button
                 h="38px"
                 px={3}
-                variant="outline"
+                variant="subtle"
                 borderColor="gray.300"
                 onClick={() => {
                   setSearch('')
@@ -377,11 +405,11 @@ const Stocks = () => {
               return (
                 <Button
                   key={pg}
-                  bg={pg === pagination.currentPage ? 'gray.900' : 'white'}
-                  color={pg === pagination.currentPage ? 'white' : 'gray.800'}
+                  bg={pg === pagination.currentPage ? 'teal.700' : 'white'}
+                  color={pg === pagination.currentPage ? 'white' : 'gray.700'}
                   border="1px solid"
-                  borderColor={pg === pagination.currentPage ? 'gray.900' : 'gray.200'}
-                  _hover={{ bg: pg === pagination.currentPage ? 'gray.900' : 'gray.100' }}
+                  borderColor={pg === pagination.currentPage ? 'teal.700' : 'teal.100'}
+                  _hover={{ bg: pg === pagination.currentPage ? 'teal.700' : 'teal.50' }}
                   onClick={() => setPage(pg)}
                 >
                   {pg}

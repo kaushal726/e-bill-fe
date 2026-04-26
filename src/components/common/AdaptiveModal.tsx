@@ -1,4 +1,4 @@
-import { Dialog, Card, Button, HStack, Text, Box } from '@chakra-ui/react'
+﻿import { Dialog, Card, Button, HStack, Text, Box } from '@chakra-ui/react'
 
 export interface FieldConfig {
   name: string
@@ -58,10 +58,10 @@ export default function AdaptiveModal({
         bg="white"
         rounded="lg"
         shadow="lg"
-        // ⬇ Responsive width
+        // â¬‡ Responsive width
         width={{ base: '95%', md: '90%', lg: '900px' }}
         maxW="95%"
-        // ⬇ Increased height
+        // â¬‡ Increased height
         maxH={{ base: '80vh', md: '85vh', lg: '90vh' }}
         overflow="hidden"
       >
@@ -79,16 +79,16 @@ export default function AdaptiveModal({
             </Text>
 
             <HStack gap={2}>
-              <Button size="sm" variant="outline">
+              <Button size="sm" variant="subtle">
                 Add Custom Field
               </Button>
 
-              <Button size="sm" variant="outline">
+              <Button size="sm" variant="subtle">
                 Bulk Upload
               </Button>
 
               <Button size="sm" variant="ghost" onClick={onClose}>
-                ✕
+                âœ•
               </Button>
             </HStack>
           </Card.Header>
@@ -98,10 +98,10 @@ export default function AdaptiveModal({
             <Card.Body
               p={5}
               overflowY="auto"
-              // ⬇ Increased scrollable area
+              // â¬‡ Increased scrollable area
               maxH={{ base: '55vh', md: '60vh', lg: '70vh' }}
               display="grid"
-              // ⬇ Responsive grid (2 columns on mobile, 3 on medium+)
+              // â¬‡ Responsive grid (2 columns on mobile, 3 on medium+)
               gridTemplateColumns={{
                 base: 'repeat(1, 1fr)',
                 sm: 'repeat(2, 1fr)',

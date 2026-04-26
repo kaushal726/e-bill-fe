@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Dialog, Portal, Button, Input, Field, useMediaQuery, SimpleGrid } from '@chakra-ui/react'
 import { X } from 'lucide-react'
 import { useSupplierActions } from '@/hooks/useSupplierActions'
@@ -210,7 +210,7 @@ export default function SupplierModal({
             <Dialog.Footer gap={3} justifyContent="flex-end">
               <Dialog.ActionTrigger asChild>
                 <Button
-                  variant="outline"
+                  variant="subtle"
                   minW="120px"
                   width="50%"
                   color="black"

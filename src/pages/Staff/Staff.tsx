@@ -1,4 +1,4 @@
-import { Flex, HStack, Text, Heading, IconButton, Button, Box } from '@chakra-ui/react'
+﻿import { Flex, HStack, Text, Heading, IconButton, Button, Box } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { Plus } from 'lucide-react'
@@ -72,6 +72,16 @@ function Staff() {
       render: (s: any) => s.salaryPerWeek ?? 0,
     },
     {
+      key: 'sundayPolicy',
+      header: 'Sunday Rule',
+      render: (s: any) =>
+        s.sundayPolicy === 'paid_off'
+          ? 'Sunday off full pay'
+          : s.sundayPolicy === 'halfday_paid_full'
+            ? 'Sunday half day full pay'
+            : 'Regular',
+    },
+    {
       key: 'joinDate',
       header: 'Join Date',
       render: (s: any) => new Date(s.joinDate).toLocaleDateString(),
@@ -93,6 +103,7 @@ function Staff() {
           role: item.role,
           baseSalary: String(item.baseSalary),
           salaryPerWeek: String(item.salaryPerWeek ?? 0),
+          sundayPolicy: item.sundayPolicy ?? 'regular',
           joinDate: item.joinDate.split('T')[0],
         })
         setOpen(true)
@@ -232,7 +243,7 @@ function Staff() {
           <Button
             onClick={() => setPage(pagination.currentPage - 1)}
             disabled={!pagination.hasPrevPage}
-            variant="outline"
+            variant="subtle"
             bg="white"
             rounded="lg"
           >
@@ -260,7 +271,7 @@ function Staff() {
           <Button
             onClick={() => setPage(pagination.currentPage + 1)}
             disabled={!pagination.hasNextPage}
-            variant="outline"
+            variant="subtle"
             bg="white"
             rounded="lg"
           >

@@ -1,4 +1,4 @@
-import { Flex, HStack, Text, Heading, Button, Box } from '@chakra-ui/react'
+﻿import { Flex, HStack, Text, Heading, Button, Box } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 
@@ -148,7 +148,7 @@ function PriceList() {
         <Button
           onClick={() => setPage(pagination.currentPage - 1)}
           disabled={!pagination.hasPreviousPage}
-          variant="outline"
+          variant="subtle"
           bg="white"
           rounded="lg"
         >
@@ -176,7 +176,7 @@ function PriceList() {
         <Button
           onClick={() => setPage(pagination.currentPage + 1)}
           disabled={!pagination.hasNextPage}
-          variant="outline"
+          variant="subtle"
           bg="white"
           rounded="lg"
         >

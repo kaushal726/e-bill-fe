@@ -1,4 +1,4 @@
-import { ToasterUtil } from '@/components/common/ToasterUtil'
+﻿import { ToasterUtil } from '@/components/common/ToasterUtil'
 import { useProfile } from '@/hooks/useProfile'
 import { useAuth } from '@/hooks/useAuth'
 import {
@@ -31,14 +31,14 @@ const plans: Array<{
   {
     key: 'weekly',
     title: 'Weekly Plan',
-    priceLabel: '₹200 / week',
+    priceLabel: 'â‚¹200 / week',
     summary: 'Perfect for testing or short-term needs. Full access with 7-day duration.',
     accent: 'linear-gradient(135deg, #f97316 0%, #fb923c 100%)',
   },
   {
     key: 'monthly',
     title: 'Monthly Plan',
-    priceLabel: '₹900 / month',
+    priceLabel: 'â‚¹900 / month',
     summary:
       'Most popular choice. Unlimited invoices, inventory, customers, suppliers & staff management.',
     accent: 'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)',
@@ -47,8 +47,8 @@ const plans: Array<{
   {
     key: 'yearly',
     title: 'Yearly Plan',
-    priceLabel: '₹10,000 / year',
-    summary: 'Maximum savings. Commit for a year and save ₹800+ compared to monthly plans.',
+    priceLabel: 'â‚¹10,000 / year',
+    summary: 'Maximum savings. Commit for a year and save â‚¹800+ compared to monthly plans.',
     accent: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
     highlight: 'Maximum savings',
   },
@@ -401,7 +401,7 @@ const Subscription = () => {
                       </Text>
                     </Box>
                     <Button
-                      variant="outline"
+                      variant="subtle"
                       colorPalette="blue"
                       onClick={handleLoginToAnotherAccount}
                       loading={isLoggingOut}

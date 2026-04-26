@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import {
   Dialog,
   Portal,
@@ -415,7 +415,7 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
                     </Text>
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="subtle"
                       color="black"
                       borderColor="black"
                       bg="white"
@@ -670,7 +670,7 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
             >
               <Dialog.ActionTrigger asChild>
                 <Button
-                  variant="outline"
+                  variant="subtle"
                   minW="120px"
                   w={{ base: '100%', sm: 'auto' }}
                   color="black"

@@ -1,4 +1,4 @@
-import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack } from '@chakra-ui/react'
+﻿import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack, Input } from '@chakra-ui/react'
 
 import { FaEdit, FaTrash } from '@/components/icons/index.ts'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -12,7 +12,8 @@ import { Plus, RefreshCw } from 'lucide-react'
 import { TableActionsPopover } from '@/components/popovers/TableActionsPopover'
 import { CommonTable } from '@/components/common/CommonTable'
 
-import { isFrontendPagination } from '@/utils/isFrontendPagination'
+import { DateInputWithIcon } from '@/components/common/DateInputWithIcon'
+import { FilterDrawer } from '@/components/common/FilterDrawer'
 
 import { useCustomerImport } from '@/hooks/useCustomerImport'
 import { useCustomerExport } from '@/hooks/useCustomerExport'
@@ -34,6 +35,11 @@ function Customers() {
   const [debouncedSearch, setDebouncedSearch] = useState(search)
   const [sortBy, setSortBy] = useState<string>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [balanceType, setBalanceType] = useState('')
+  const [minBalance, setMinBalance] = useState('')
+  const [maxBalance, setMaxBalance] = useState('')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
 
   const { deleteCustomer } = useCustomerActions()
   const importCustomers = useCustomerImport()
@@ -45,7 +51,6 @@ function Customers() {
 
   const [page, setPage] = useState(1)
   const limit = 20
-  const frontend = isFrontendPagination(sortBy, sortOrder)
 
   useEffect(() => {
     const id = setTimeout(() => setDebouncedSearch(search), 400)
@@ -53,36 +58,32 @@ function Customers() {
   }, [search])
 
   const { data, isLoading } = useCustomers({
+    page,
+    limit,
     search: debouncedSearch || undefined,
-    ...(frontend ? { sortBy, sortOrder } : { page, limit }),
+    sortBy,
+    sortOrder,
+    balanceType: (balanceType as any) || undefined,
+    minBalance: minBalance ? Number(minBalance) : undefined,
+    maxBalance: maxBalance ? Number(maxBalance) : undefined,
+    fromDate: fromDate || undefined,
+    toDate: toDate || undefined,
   })
 
   const rawCustomers = data?.customers ?? []
+  const customers = rawCustomers
 
-  const customers = useMemo(() => {
-    if (!frontend) return rawCustomers
-
-    const start = (page - 1) * limit
-    return rawCustomers.slice(start, start + limit)
-  }, [rawCustomers, page, limit, frontend])
-
-  const pagination = frontend
-    ? {
-        currentPage: page,
-        totalPages: Math.max(1, Math.ceil(rawCustomers.length / limit)),
-        hasNextPage: page * limit < rawCustomers.length,
-        hasPreviousPage: page > 1,
-      }
-    : (data?.pagination ?? {
-        currentPage: 1,
-        totalPages: 1,
-        hasNextPage: false,
-        hasPreviousPage: false,
-      })
+  const pagination = data?.pagination ?? {
+    currentPage: 1,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false,
+    totalCustomers: rawCustomers.length,
+  }
 
   useEffect(() => {
     setPage(1)
-  }, [sortBy, sortOrder, search])
+  }, [sortBy, sortOrder, search, balanceType, minBalance, maxBalance, fromDate, toDate])
 
   const customerColumns = [
     { key: 'name', header: 'Contact Name', width: '220px', render: (c: any) => c.name || '-' },
@@ -216,10 +217,26 @@ function Customers() {
   }
 
   const summary = {
-    total: rawCustomers.length,
+    total: data?.pagination?.totalCustomers ?? rawCustomers.length,
     showing: customers.length,
     activePage: pagination.currentPage,
     totalPages: pagination.totalPages,
+  }
+
+  const activeFilterCount = [
+    Boolean(balanceType),
+    Boolean(minBalance),
+    Boolean(maxBalance),
+    Boolean(fromDate),
+    Boolean(toDate),
+  ].filter(Boolean).length
+
+  const clearFilters = () => {
+    setBalanceType('')
+    setMinBalance('')
+    setMaxBalance('')
+    setFromDate('')
+    setToDate('')
   }
 
   return (
@@ -240,8 +257,15 @@ function Customers() {
         px={{ base: 4, md: 6 }}
         py={{ base: 4, md: 5 }}
       >
-        <SimpleGrid columns={{ base: 2, md: 4 }} gap={3}>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+        <SimpleGrid minChildWidth={{ base: '140px', md: '180px' }} gap={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Total
             </Text>
@@ -249,7 +273,14 @@ function Customers() {
               {summary.total}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Showing
             </Text>
@@ -257,7 +288,14 @@ function Customers() {
               {summary.showing}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Page
             </Text>
@@ -265,7 +303,14 @@ function Customers() {
               {summary.activePage}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Total Pages
             </Text>
@@ -287,30 +332,92 @@ function Customers() {
             <ExpandableSearch
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search customers…"
+              placeholder="Search customers..."
               expandedWidth="300px"
             />
-
-            <Text
-              fontSize="xs"
-              color="gray.600"
-              bg="white"
-              px={3}
-              py={2}
-              borderRadius="10px"
-              border="1px solid"
-              borderColor="gray.100"
-            >
-              Sorted by {sortBy} ({sortOrder})
-            </Text>
+            <FilterDrawer
+              title="Customer Filters"
+              subtitle="Filter by balance category, range, and created date range."
+              activeCount={activeFilterCount}
+              onClearAll={clearFilters}
+              sections={[
+                {
+                  key: 'balance-type',
+                  title: 'Balance Type',
+                  description:
+                    'Due shows pending receivables, Advance shows credit, Settled shows zero balance.',
+                  content: (
+                    <Box>
+                      <select
+                        value={balanceType}
+                        onChange={(e) => setBalanceType(e.target.value)}
+                        style={{
+                          width: '100%',
+                          height: '40px',
+                          border: '1px solid #CBD5E0',
+                          borderRadius: '12px',
+                          padding: '0 12px',
+                          background: 'white',
+                        }}
+                      >
+                        <option value="">All balance</option>
+                        <option value="due">Due</option>
+                        <option value="advance">Advance</option>
+                        <option value="settled">Settled</option>
+                      </select>
+                    </Box>
+                  ),
+                },
+                {
+                  key: 'balance-range',
+                  title: 'Balance Range',
+                  description: 'Min/Max applies to customer balance values.',
+                  content: (
+                    <HStack>
+                      <Input
+                        value={minBalance}
+                        onChange={(e) => setMinBalance(e.target.value)}
+                        placeholder="Min balance"
+                        type="number"
+                        bg="white"
+                        borderColor="gray.200"
+                        borderRadius="12px"
+                        h="40px"
+                      />
+                      <Input
+                        value={maxBalance}
+                        onChange={(e) => setMaxBalance(e.target.value)}
+                        placeholder="Max balance"
+                        type="number"
+                        bg="white"
+                        borderColor="gray.200"
+                        borderRadius="12px"
+                        h="40px"
+                      />
+                    </HStack>
+                  ),
+                },
+                {
+                  key: 'created-date',
+                  title: 'Created Date Range',
+                  description: 'From and To date filters apply to customer created date.',
+                  content: (
+                    <VStack align="stretch" gap={2}>
+                      <DateInputWithIcon value={fromDate} onChange={setFromDate} />
+                      <DateInputWithIcon value={toDate} onChange={setToDate} />
+                    </VStack>
+                  ),
+                },
+              ]}
+            />
           </HStack>
           <HStack gap={2}>
             <Button
-              bg="gray.950"
+              bg="teal.700"
               color="white"
               h="38px"
               px={4}
-              _hover={{ bg: 'gray.800' }}
+              _hover={{ bg: 'teal.800' }}
               onClick={() => {
                 setDialogMode('add')
                 setEditId(null)
@@ -327,7 +434,7 @@ function Customers() {
             </Button>
 
             <Button
-              variant="outline"
+              variant="subtle"
               bg="white"
               color="black"
               borderColor="gray.300"
@@ -414,11 +521,11 @@ function Customers() {
               return (
                 <Button
                   key={pg}
-                  bg={pg === pagination.currentPage ? 'gray.900' : 'white'}
-                  color={pg === pagination.currentPage ? 'white' : 'gray.800'}
+                  bg={pg === pagination.currentPage ? 'teal.700' : 'white'}
+                  color={pg === pagination.currentPage ? 'white' : 'gray.700'}
                   border="1px solid"
-                  borderColor={pg === pagination.currentPage ? 'gray.900' : 'gray.200'}
-                  _hover={{ bg: pg === pagination.currentPage ? 'gray.900' : 'gray.100' }}
+                  borderColor={pg === pagination.currentPage ? 'teal.700' : 'teal.100'}
+                  _hover={{ bg: pg === pagination.currentPage ? 'teal.700' : 'teal.50' }}
                   onClick={() => setPage(pg)}
                 >
                   {pg}
@@ -439,7 +546,7 @@ function Customers() {
           </HStack>
 
           <Text fontSize="xs" color="gray.600">
-            Showing {customers.length} of {rawCustomers.length} customers
+            Showing {customers.length} of {summary.total} customers
           </Text>
         </VStack>
       </Flex>

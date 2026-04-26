@@ -16,11 +16,10 @@ export const Header = () => {
   return (
     <Box
       px={{ base: 4, md: 6 }}
-      py={{ base: 1.5, md: 2 }}
-      bg="rgba(255,250,245,0.72)"
-      backdropFilter="blur(18px)"
+      py={{ base: 0, md: 0 }}
+      bg="#c7d2cc"
       borderBottomWidth="1px"
-      borderColor="whiteAlpha.800"
+      borderColor="#a7b7af"
       position="sticky"
       top={0}
       zIndex={999}
@@ -30,72 +29,102 @@ export const Header = () => {
         },
       }}
     >
-      <Box
+      <Flex
+        align="center"
+        justify="space-between"
+        direction="row"
+        gap={{ base: 2, lg: 4 }}
+        minH={{ base: '60px', md: '82px' }}
+        px={{ base: 2.5, md: 6 }}
+        py={{ base: 2, md: 3.5 }}
         position="relative"
-        overflow="hidden"
-        borderRadius={{ base: '20px', md: '22px' }}
-        border="1px solid rgba(255,255,255,0.9)"
-        bg="linear-gradient(135deg, rgba(255,255,255,0.86) 0%, rgba(255,247,237,0.92) 45%, rgba(240,253,250,0.88) 100%)"
-        boxShadow="0 14px 36px rgba(15,23,42,0.06)"
       >
-        <Box
-          position="absolute"
-          inset="0"
-          bg="radial-gradient(circle at top right, rgba(249,115,22,0.16), transparent 28%), radial-gradient(circle at bottom left, rgba(20,184,166,0.12), transparent 24%)"
-          pointerEvents="none"
-        />
+        <HStack align="center" gap={{ base: 2, md: 4 }} flex="1" minW={0}>
+          <Box
+            width="4px"
+            borderRadius="full"
+            bg="#4f6f68"
+            alignSelf="stretch"
+            minH={{ base: '28px', md: '48px' }}
+          />
 
-        <Flex
-          position="relative"
-          align={{ base: 'start', lg: 'center' }}
-          justify="space-between"
-          direction={{ base: 'column', lg: 'row' }}
-          gap={{ base: 2.5, lg: 3 }}
-          px={{ base: 3.5, md: 4 }}
-          py={{ base: 2.5, md: 2.5 }}
-        >
-          <Stack gap={1.5} flex="1" minW={0}>
-            <Box>
-              <Text
-                fontSize={{ base: 'lg', md: 'xl' }}
-                fontWeight="900"
-                color="gray.950"
-                lineHeight="1"
-                letterSpacing="-0.05em"
-              >
-                {title}
-              </Text>
-              <Text mt={0.5} fontSize="xs" color="gray.600" maxW="720px" noOfLines={1}>
-                {subtitle || `Operational view for ${userName}.`}
-              </Text>
-            </Box>
+          <Stack gap={0.5} flex="1" minW={0} justify="center">
+            <Text
+              display={{ base: 'none', md: 'block' }}
+              fontSize="11px"
+              fontWeight="700"
+              color="#5a746c"
+              textTransform="uppercase"
+              letterSpacing="0.14em"
+            >
+              Workspace
+            </Text>
+            <Text
+              fontSize={{ base: 'lg', md: '2xl' }}
+              fontWeight="700"
+              color="#223530"
+              lineHeight="1.1"
+              letterSpacing="-0.03em"
+              whiteSpace="nowrap"
+              overflow="hidden"
+              textOverflow="ellipsis"
+            >
+              {title}
+            </Text>
+            <Text
+              display={{ base: 'none', md: 'block' }}
+              fontSize="sm"
+              color="#49615c"
+              maxW="760px"
+              overflow="hidden"
+              textOverflow="ellipsis"
+              whiteSpace="nowrap"
+            >
+              {subtitle || `Operational view for ${userName}.`}
+            </Text>
           </Stack>
+        </HStack>
 
-          <VStack align={{ base: 'stretch', lg: 'end' }} gap={1.5} w={{ base: '100%', lg: 'auto' }}>
-            <ProfilePopover
-              trigger={
-                <Box as="span">
-                  <HStack
-                    gap={2}
-                    p={0.75}
-                    pl={{ base: 0.75, md: 1.25 }}
-                    borderRadius="999px"
-                    bg="white"
-                    border="1px solid"
-                    borderColor="gray.200"
-                    boxShadow="0 8px 20px rgba(15,23,42,0.06)"
-                    cursor="pointer"
-                  >
-                    <Avatar.Root size="sm" borderWidth="2px" borderColor="orange.100">
-                      <Avatar.Fallback>{profile?.firstName?.[0] ?? 'U'}</Avatar.Fallback>
-                    </Avatar.Root>
-                  </HStack>
-                </Box>
-              }
-            />
-          </VStack>
-        </Flex>
-      </Box>
+        <VStack align="end" gap={1.5} w="auto" flexShrink={0}>
+          <ProfilePopover
+            trigger={
+              <Box as="span">
+                <HStack
+                  gap={{ base: 0, md: 2.5 }}
+                  px={{ base: 0, md: 3.5 }}
+                  py={{ base: 0, md: 2.5 }}
+                  borderRadius={{ base: 'full', md: '18px' }}
+                  bg="#d8e0db"
+                  border={{ base: 'none', md: '1px solid' }}
+                  borderColor="#aebdb6"
+                  boxShadow={{ base: 'none', md: '0 1px 0 rgba(255,255,255,0.35) inset' }}
+                  cursor="pointer"
+                >
+                  <Avatar.Root size="sm" bg="#5e7b74" color="white">
+                    <Avatar.Fallback>{profile?.firstName?.[0] ?? 'U'}</Avatar.Fallback>
+                  </Avatar.Root>
+                  <VStack align="start" gap={0} hideBelow="md">
+                    <Text fontSize="sm" fontWeight="700" color="#223530" lineHeight="1.1">
+                      {userName}
+                    </Text>
+                    <Text
+                      fontSize="12px"
+                      color="#58716a"
+                      lineHeight="1.1"
+                      maxW="190px"
+                      overflow="hidden"
+                      textOverflow="ellipsis"
+                      whiteSpace="nowrap"
+                    >
+                      {shopName}
+                    </Text>
+                  </VStack>
+                </HStack>
+              </Box>
+            }
+          />
+        </VStack>
+      </Flex>
     </Box>
   )
 }

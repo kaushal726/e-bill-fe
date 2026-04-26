@@ -1,4 +1,4 @@
-import { Box, HStack, Text, Button, VStack } from '@chakra-ui/react'
+﻿import { Box, HStack, Text, Button, VStack } from '@chakra-ui/react'
 import { Card } from '../Card'
 
 type Vendor = {
@@ -21,7 +21,7 @@ export function TopVendors() {
       <HStack justify="space-between" mb={3}>
         <Text fontWeight="600">Top Vendors</Text>
         <Text fontSize="sm" color="gray.500">
-          This Month ▾
+          This Month â–¾
         </Text>
       </HStack>
 
@@ -29,7 +29,7 @@ export function TopVendors() {
         <Button size="xs" colorPalette="blue">
           By Quantity
         </Button>
-        <Button size="xs" variant="outline">
+        <Button size="xs" variant="subtle">
           By Value
         </Button>
       </HStack>

@@ -1,4 +1,4 @@
-import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack, Badge, Input } from '@chakra-ui/react'
+﻿import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack, Badge, Input } from '@chakra-ui/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, Download, CalendarDays, FilterX } from 'lucide-react'
 import { useDispatch } from 'react-redux'
@@ -369,8 +369,15 @@ function Purchase() {
         px={{ base: 4, md: 6 }}
         py={{ base: 4, md: 5 }}
       >
-        <SimpleGrid columns={{ base: 2, md: 4 }} gap={3}>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+        <SimpleGrid columns={{ base: 2, sm: 3, lg: 4, xl: 6 }} gap={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Showing Purchases
             </Text>
@@ -378,7 +385,14 @@ function Purchase() {
               {summary.total}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Total Value
             </Text>
@@ -386,7 +400,14 @@ function Purchase() {
               {formatCurrency(summary.purchaseValue)}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Total Paid
             </Text>
@@ -394,7 +415,14 @@ function Purchase() {
               {formatCurrency(summary.paidValue)}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Total Due
             </Text>
@@ -573,7 +601,7 @@ function Purchase() {
                   h="34px"
                   px={3}
                   size="sm"
-                  variant="outline"
+                  variant="subtle"
                   borderColor="gray.300"
                   onClick={() => {
                     setSupplierIdFilter('')
@@ -594,11 +622,11 @@ function Purchase() {
 
             <HStack gap={2} alignSelf={{ base: 'flex-end', lg: 'center' }}>
               <Button
-                bg="gray.950"
+                bg="teal.700"
                 color="white"
                 h="38px"
                 px={4}
-                _hover={{ bg: 'gray.800' }}
+                _hover={{ bg: 'teal.800' }}
                 onClick={() => setCreateOpen(true)}
               >
                 <HStack gap={1.5}>
@@ -681,11 +709,11 @@ function Purchase() {
               return (
                 <Button
                   key={pg}
-                  bg={pg === pagination.currentPage ? 'gray.900' : 'white'}
-                  color={pg === pagination.currentPage ? 'white' : 'gray.800'}
+                  bg={pg === pagination.currentPage ? 'teal.700' : 'white'}
+                  color={pg === pagination.currentPage ? 'white' : 'gray.700'}
                   border="1px solid"
-                  borderColor={pg === pagination.currentPage ? 'gray.900' : 'gray.200'}
-                  _hover={{ bg: pg === pagination.currentPage ? 'gray.900' : 'gray.100' }}
+                  borderColor={pg === pagination.currentPage ? 'teal.700' : 'teal.100'}
+                  _hover={{ bg: pg === pagination.currentPage ? 'teal.700' : 'teal.50' }}
                   onClick={() => setPage(pg)}
                 >
                   {pg}

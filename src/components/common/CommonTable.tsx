@@ -44,16 +44,16 @@ export function CommonTable<T>({
       maxH="480px"
       overflow="auto"
       border="1px solid"
-      borderColor="gray.200"
+      borderColor="teal.100"
       borderRadius="16px"
-      bg="white"
-      boxShadow="0 10px 30px rgba(15, 23, 42, 0.04)"
+      bg="rgba(255,255,255,0.98)"
+      boxShadow="0 16px 34px rgba(15, 23, 42, 0.08)"
       css={{
         scrollbarWidth: 'thin',
         msOverflowStyle: 'auto',
         '&::-webkit-scrollbar': { height: '8px', width: '8px' },
-        '&::-webkit-scrollbar-track': { background: '#f8fafc' },
-        '&::-webkit-scrollbar-thumb': { background: '#cbd5e1', borderRadius: '999px' },
+        '&::-webkit-scrollbar-track': { background: '#ecfeff' },
+        '&::-webkit-scrollbar-thumb': { background: '#99f6e4', borderRadius: '999px' },
       }}
     >
       <Table.Root size="sm" stickyHeader variant="line" tableLayout="fixed">
@@ -64,12 +64,12 @@ export function CommonTable<T>({
           top={0}
           zIndex={1}
         >
-          <Table.Row bg="linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)">
+          <Table.Row bg="linear-gradient(180deg, #f0fdfa 0%, #ccfbf1 100%)">
             {columns.map((c) => (
               <Table.ColumnHeader
                 key={c.key}
                 fontWeight="700"
-                color="gray.700"
+                color="teal.900"
                 fontSize="xs"
                 letterSpacing="0.06em"
                 textTransform="uppercase"
@@ -86,7 +86,7 @@ export function CommonTable<T>({
             {actions && (
               <Table.ColumnHeader
                 fontWeight="700"
-                color="gray.700"
+                color="teal.900"
                 fontSize="xs"
                 letterSpacing="0.06em"
                 textTransform="uppercase"
@@ -130,8 +130,8 @@ export function CommonTable<T>({
                   key={rowKey(row)}
                   bg="white"
                   borderBottom="1px solid"
-                  borderColor="gray.100"
-                  _hover={{ bg: 'orange.50' }}
+                  borderColor="teal.50"
+                  _hover={{ bg: 'teal.50' }}
                 >
                   {columns.map((c) => (
                     <Table.Cell
@@ -166,9 +166,13 @@ export function CommonTable<T>({
                             key={i}
                             onClick={() => action.onClick(row)}
                             size="xs"
-                            variant="ghost"
-                            color={action.color || 'gray.600'}
-                            _hover={{ bg: 'gray.100' }}
+                            variant="subtle"
+                            bg="teal.50"
+                            color={action.color || '#0f766e'}
+                            border="1px solid"
+                            borderColor="teal.100"
+                            borderRadius="10px"
+                            _hover={{ bg: 'teal.100', borderColor: 'teal.200' }}
                             aria-label={action.label}
                             title={action.label}
                           >

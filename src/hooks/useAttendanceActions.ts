@@ -7,7 +7,7 @@ const toast = ToasterUtil()
 
 export type MarkAttendancePayload = {
   staffId: string
-  status: 'present' | 'absent' | 'leave'
+  status: 'present' | 'halfday' | 'absent' | 'leave'
   date?: string
   checkIn?: string
   checkOut?: string
@@ -15,7 +15,7 @@ export type MarkAttendancePayload = {
 
 export type BulkMarkPayload = {
   date?: string
-  records: { staffId: string; status: 'present' | 'absent' | 'leave' }[]
+  records: { staffId: string; status: 'present' | 'halfday' | 'absent' | 'leave' }[]
 }
 
 export const useAttendanceActions = () => {
@@ -32,8 +32,8 @@ export const useAttendanceActions = () => {
       invalidate()
       toast('Attendance marked', 'success')
     },
-    onError: () => {
-      toast('Failed to mark attendance', 'error')
+    onError: (error: any) => {
+      toast(error?.response?.data?.message || 'Failed to mark attendance', 'error')
     },
   })
 
@@ -45,8 +45,8 @@ export const useAttendanceActions = () => {
       const saved = res?.data?.saved ?? 0
       toast(`Bulk mark complete: ${saved} saved`, 'success')
     },
-    onError: () => {
-      toast('Bulk mark failed', 'error')
+    onError: (error: any) => {
+      toast(error?.response?.data?.message || 'Bulk mark failed', 'error')
     },
   })
 

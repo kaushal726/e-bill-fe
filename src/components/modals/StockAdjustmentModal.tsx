@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+﻿import { useMemo, useState } from 'react'
 import {
   Dialog,
   Portal,
@@ -213,7 +213,7 @@ export default function StockAdjustmentModal({ open, onClose }: StockAdjustmentM
             <Dialog.Footer gap={3} justifyContent="flex-end">
               <Dialog.ActionTrigger asChild>
                 <Button
-                  variant="outline"
+                  variant="subtle"
                   minW="120px"
                   width="50%"
                   color="gray.700"

@@ -1,4 +1,4 @@
-import {
+﻿import {
   Box,
   Button,
   Container,
@@ -19,7 +19,12 @@ const MotionButton = motion.create(Button)
 
 export function HeroSection() {
   return (
-    <Box bg="black" py={{ base: 20, md: 32 }} position="relative" overflow="hidden">
+    <Box
+      bg="linear-gradient(180deg, #020617 0%, #0f172a 50%, #111827 100%)"
+      py={{ base: 20, md: 32 }}
+      position="relative"
+      overflow="hidden"
+    >
       {/* Animated background elements */}
       <MotionBox
         position="absolute"
@@ -27,10 +32,10 @@ export function HeroSection() {
         right="-5%"
         w="600px"
         h="600px"
-        bgGradient="radial(purple.500, transparent)"
+        bgGradient="radial(orange.300, transparent)"
         borderRadius="full"
         filter="blur(80px)"
-        opacity={0.3}
+        opacity={0.4}
         animate={{
           scale: [1, 1.2, 1],
           rotate: [0, 90, 0],
@@ -48,10 +53,10 @@ export function HeroSection() {
         left="-5%"
         w="500px"
         h="500px"
-        bgGradient="radial(purple.600, transparent)"
+        bgGradient="radial(cyan.300, transparent)"
         borderRadius="full"
         filter="blur(80px)"
-        opacity={0.3}
+        opacity={0.35}
         animate={{
           scale: [1, 1.3, 1],
           rotate: [0, -90, 0],
@@ -72,7 +77,7 @@ export function HeroSection() {
             transition={{ duration: 0.6 }}
           >
             <Badge
-              colorPalette="purple"
+              colorPalette="orange"
               size="lg"
               px={4}
               py={2}
@@ -84,7 +89,7 @@ export function HeroSection() {
               gap={2}
             >
               <Sparkles size={16} />
-              Trusted by 1000+ businesses
+              Trusted by 1000+ growing businesses
             </Badge>
           </MotionBox>
 
@@ -96,16 +101,15 @@ export function HeroSection() {
           >
             <Heading
               size={{ base: '3xl', md: '6xl' }}
-              fontWeight="900"
-              letterSpacing="tight"
+              fontWeight="700"
+              letterSpacing="0.01em"
               lineHeight="1.1"
-              bgGradient="linear(to-r, purple.400, purple.600)"
-              bgClip="text"
               maxW="5xl"
               mb={6}
-              color={'white'}
+              color="white"
+              fontFamily="'Notable', 'Poppins', sans-serif"
             >
-              Complete Billing, Inventory & Business Management for Growing Businesses
+              Billing That Feels Fast. Insights That Feel Clear.
             </Heading>
           </MotionBox>
 
@@ -120,9 +124,8 @@ export function HeroSection() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            One unified platform for billing, inventory tracking, customer management, supplier
-            management, and real-time analytics. Automate your business operations and make
-            data-driven decisions.
+            eBillX helps your team create invoices, track stock, monitor dues, and view live
+            business performance without juggling spreadsheets and disconnected tools.
           </MotionText>
 
           {/* Features List */}
@@ -136,23 +139,23 @@ export function HeroSection() {
               flexWrap="wrap"
               justify="center"
               fontSize={{ base: 'sm', md: 'md' }}
-              color="gray.600"
+              color="gray.300"
               fontWeight="500"
             >
               <HStack>
-                <Box color="green.500">
+                <Box color="teal.500">
                   <Zap size={18} fill="currentColor" />
                 </Box>
                 <Text>Real-time tracking</Text>
               </HStack>
               <HStack>
-                <Box color="blue.500">
+                <Box color="cyan.600">
                   <TrendingUp size={18} />
                 </Box>
                 <Text>Smart analytics</Text>
               </HStack>
               <HStack>
-                <Box color="purple.500">
+                <Box color="orange.500">
                   <Sparkles size={18} />
                 </Box>
                 <Text>Easy to use</Text>
@@ -171,12 +174,12 @@ export function HeroSection() {
                 size="xl"
                 px={8}
                 py={7}
-                bgGradient="linear(to-r, purple.500, purple.700)"
+                bgGradient="linear(to-r, orange.500, cyan.500)"
                 fontSize="lg"
                 fontWeight="700"
                 borderRadius="full"
                 shadow="xl"
-                color="purple.500"
+                color="white"
                 _hover={{
                   transform: 'translateY(-2px)',
                   shadow: '2xl',
@@ -192,23 +195,24 @@ export function HeroSection() {
                 size="xl"
                 px={8}
                 py={7}
-                variant="outline"
+                variant="subtle"
                 borderWidth="2px"
-                borderColor="purple.500"
+                borderColor="orange.400"
                 fontSize="lg"
                 fontWeight="600"
                 borderRadius="full"
                 bg="transparent"
                 color="white"
                 _hover={{
-                  bg: 'gray.50',
-                  borderColor: 'gray.400',
+                  bg: 'whiteAlpha.100',
+                  borderColor: 'orange.500',
                   transform: 'translateY(-2px)',
                 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                asChild
               >
-                Watch Demo
+                <RouterLink to="/login">Login & Explore Dashboard</RouterLink>
               </MotionButton>
             </Stack>
           </MotionBox>
@@ -222,7 +226,7 @@ export function HeroSection() {
           >
             <VStack gap={2}>
               <Text fontSize="sm" color="gray.400" fontWeight="500">
-                No credit card required • Free 14-day trial
+                No credit card required Set up in minutes Ready for daily billing
               </Text>
             </VStack>
           </MotionBox>

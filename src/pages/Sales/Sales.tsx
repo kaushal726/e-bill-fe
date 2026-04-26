@@ -1,5 +1,5 @@
-import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack, Badge } from '@chakra-ui/react'
-import { useEffect, useMemo, useState } from 'react'
+﻿import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack, Badge, Input } from '@chakra-ui/react'
+import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 
@@ -7,6 +7,8 @@ import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 import { CommonTable } from '@/components/common/CommonTable'
 import { ExpandableSearch } from '@/components/common/ExpandableSearch'
 import { FilterSelect } from '@/components/common/FilterSelect'
+import { DateInputWithIcon } from '@/components/common/DateInputWithIcon'
+import { FilterDrawer } from '@/components/common/FilterDrawer'
 import { FaEdit, FaTrash } from '@/components/icons'
 import { FiDownload } from 'react-icons/fi'
 import ConfirmDeleteDialog from '@/components/modals/ConfirmDelete'
@@ -15,8 +17,9 @@ import { API_ENDPOINTS } from '@/api/apiEndpoints'
 import SaleModal from '@/components/modals/SaleModal'
 import SalePaymentModal from '@/components/modals/SalePaymentModal'
 
-import { useSales } from '@/hooks/useSale'
+import { useSalesList } from '@/hooks/useSale'
 import { useSaleActions } from '@/hooks/useSaleActions'
+import { useCustomers } from '@/hooks/useCustomer'
 
 const paymentStatusColor = {
   pending: 'orange',
@@ -41,11 +44,43 @@ function Sales() {
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState(search)
   const [paymentFilter, setPaymentFilter] = useState<string[]>([])
+  const [customerId, setCustomerId] = useState('')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
+  const [minAmount, setMinAmount] = useState('')
+  const [maxAmount, setMaxAmount] = useState('')
   const [page, setPage] = useState(1)
   const limit = 20
 
-  const { data: salesData = [], isLoading } = useSales()
+  const paymentStatus =
+    paymentFilter[0] && paymentFilter[0] !== 'all' ? paymentFilter[0] : undefined
+
+  const { data: salesResponse, isLoading } = useSalesList({
+    page,
+    limit,
+    search: debouncedSearch || undefined,
+    paymentStatus: paymentStatus as any,
+    customerId: customerId || undefined,
+    fromDate: fromDate || undefined,
+    toDate: toDate || undefined,
+    minAmount: minAmount ? Number(minAmount) : undefined,
+    maxAmount: maxAmount ? Number(maxAmount) : undefined,
+    sortBy: 'createdAt',
+    sortOrder: 'desc',
+  })
+  const { data: customerData } = useCustomers({ page: 1, limit: 200 })
   const { deleteSale } = useSaleActions()
+
+  const sales = salesResponse?.sales || []
+  const pagination =
+    salesResponse?.pagination ||
+    ({
+      currentPage: 1,
+      totalPages: 1,
+      totalSales: 0,
+      hasNextPage: false,
+      hasPrevPage: false,
+    } as any)
 
   const paymentFilterOptions = [
     { label: 'All Status', value: 'all' },
@@ -90,55 +125,31 @@ function Sales() {
 
   useEffect(() => {
     setPage(1)
-  }, [debouncedSearch])
-
-  const filteredSales = useMemo(() => {
-    const keyword = debouncedSearch.trim().toLowerCase()
-
-    let filtered = salesData
-
-    // Apply search filter
-    if (keyword) {
-      filtered = filtered.filter((s) => {
-        const haystack = [
-          s.invoiceNumber,
-          s.customerName || '',
-          s.customerId?.name || '',
-          s.paymentStatus,
-          s.note || '',
-        ]
-          .join(' ')
-          .toLowerCase()
-
-        return haystack.includes(keyword)
-      })
-    }
-
-    // Apply payment status filter
-    if (paymentFilter.length > 0 && !paymentFilter.includes('all')) {
-      filtered = filtered.filter((s) => paymentFilter.includes(s.paymentStatus || ''))
-    }
-
-    return filtered
-  }, [salesData, debouncedSearch, paymentFilter])
-
-  const sales = useMemo(() => {
-    const start = (page - 1) * limit
-    return filteredSales.slice(start, start + limit)
-  }, [filteredSales, page])
-
-  const pagination = {
-    currentPage: page,
-    totalPages: Math.max(1, Math.ceil(filteredSales.length / limit)),
-    hasNextPage: page * limit < filteredSales.length,
-    hasPreviousPage: page > 1,
-  }
+  }, [debouncedSearch, paymentStatus, customerId, fromDate, toDate, minAmount, maxAmount])
 
   const summary = {
-    total: filteredSales.length,
+    total: pagination.totalSales || 0,
     showing: sales.length,
     activePage: pagination.currentPage,
     totalPages: pagination.totalPages,
+  }
+
+  const activeFilterCount = [
+    Boolean(paymentStatus),
+    Boolean(customerId),
+    Boolean(fromDate),
+    Boolean(toDate),
+    Boolean(minAmount),
+    Boolean(maxAmount),
+  ].filter(Boolean).length
+
+  const clearFilters = () => {
+    setPaymentFilter(['all'])
+    setCustomerId('')
+    setFromDate('')
+    setToDate('')
+    setMinAmount('')
+    setMaxAmount('')
   }
 
   const saleColumns = [
@@ -252,7 +263,7 @@ function Sales() {
         px={{ base: 4, md: 6 }}
         py={{ base: 4, md: 5 }}
       >
-        <SimpleGrid columns={{ base: 2, md: 4 }} gap={3}>
+        <SimpleGrid minChildWidth={{ base: '140px', md: '180px' }} gap={3}>
           {[
             { label: 'Total', value: summary.total },
             { label: 'Showing', value: summary.showing },
@@ -292,22 +303,105 @@ function Sales() {
               placeholder="Search sales..."
               expandedWidth="300px"
             />
-            <FilterSelect
-              options={paymentFilterOptions}
-              value={paymentFilter}
-              defaultValue={['all']}
-              placeholder="Filter by status"
-              width="200px"
-              onChange={setPaymentFilter}
+            <FilterDrawer
+              title="Sales Filters"
+              subtitle="Filter by status, customer, date range, and amount range."
+              activeCount={activeFilterCount}
+              onClearAll={clearFilters}
+              sections={[
+                {
+                  key: 'status',
+                  title: 'Payment Status',
+                  description: 'Use this to view only pending, partial, paid, or advance sales.',
+                  content: (
+                    <FilterSelect
+                      options={paymentFilterOptions}
+                      value={paymentFilter}
+                      defaultValue={['all']}
+                      placeholder="Filter by status"
+                      width="100%"
+                      onChange={setPaymentFilter}
+                    />
+                  ),
+                },
+                {
+                  key: 'customer',
+                  title: 'Customer',
+                  description: "Select a customer to show only that customer's sales.",
+                  content: (
+                    <Box>
+                      <select
+                        value={customerId}
+                        onChange={(e) => setCustomerId(e.target.value)}
+                        style={{
+                          width: '100%',
+                          height: '40px',
+                          border: '1px solid #CBD5E0',
+                          borderRadius: '12px',
+                          padding: '0 12px',
+                          background: 'white',
+                        }}
+                      >
+                        <option value="">All customers</option>
+                        {(customerData?.customers || []).map((c: any) => (
+                          <option key={c._id} value={c._id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </Box>
+                  ),
+                },
+                {
+                  key: 'date',
+                  title: 'Date Range',
+                  description: 'From and To dates apply to sale creation/sale date window.',
+                  content: (
+                    <VStack align="stretch" gap={2}>
+                      <DateInputWithIcon value={fromDate} onChange={setFromDate} />
+                      <DateInputWithIcon value={toDate} onChange={setToDate} />
+                    </VStack>
+                  ),
+                },
+                {
+                  key: 'amount',
+                  title: 'Amount Range',
+                  description: 'Min/Max amount filters the sale total amount range.',
+                  content: (
+                    <HStack>
+                      <Input
+                        value={minAmount}
+                        onChange={(e) => setMinAmount(e.target.value)}
+                        placeholder="Min amount"
+                        type="number"
+                        bg="white"
+                        borderColor="gray.200"
+                        borderRadius="12px"
+                        h="40px"
+                      />
+                      <Input
+                        value={maxAmount}
+                        onChange={(e) => setMaxAmount(e.target.value)}
+                        placeholder="Max amount"
+                        type="number"
+                        bg="white"
+                        borderColor="gray.200"
+                        borderRadius="12px"
+                        h="40px"
+                      />
+                    </HStack>
+                  ),
+                },
+              ]}
             />
           </HStack>
 
           <Button
-            bg="gray.950"
+            bg="teal.700"
             color="white"
             h="38px"
             px={4}
-            _hover={{ bg: 'gray.800' }}
+            _hover={{ bg: 'teal.800' }}
             onClick={() => setCreateOpen(true)}
           >
             <HStack gap={1.5}>
@@ -359,7 +453,7 @@ function Sales() {
               border="1px solid"
               borderColor="gray.200"
               _hover={{ bg: 'gray.50' }}
-              disabled={!pagination.hasPreviousPage}
+              disabled={!pagination.hasPrevPage}
             >
               Previous
             </Button>
@@ -369,11 +463,11 @@ function Sales() {
               return (
                 <Button
                   key={pg}
-                  bg={pg === pagination.currentPage ? 'gray.900' : 'white'}
-                  color={pg === pagination.currentPage ? 'white' : 'gray.800'}
+                  bg={pg === pagination.currentPage ? 'teal.700' : 'white'}
+                  color={pg === pagination.currentPage ? 'white' : 'gray.700'}
                   border="1px solid"
-                  borderColor={pg === pagination.currentPage ? 'gray.900' : 'gray.200'}
-                  _hover={{ bg: pg === pagination.currentPage ? 'gray.900' : 'gray.100' }}
+                  borderColor={pg === pagination.currentPage ? 'teal.700' : 'teal.100'}
+                  _hover={{ bg: pg === pagination.currentPage ? 'teal.700' : 'teal.50' }}
                   onClick={() => setPage(pg)}
                 >
                   {pg}

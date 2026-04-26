@@ -1,4 +1,4 @@
-import { useDashboardStats } from '@/hooks/useDashboardStats'
+﻿import { useDashboardStats } from '@/hooks/useDashboardStats'
 import {
   Alert,
   Badge,
@@ -57,6 +57,12 @@ const dateFormatter = new Intl.DateTimeFormat('en-IN', {
 })
 
 const formatCurrency = (value: number) => `Rs. ${currency.format(Math.round(value || 0))}`
+
+const formatPercent = (value: number) => {
+  const safe = Number.isFinite(value) ? value : 0
+  const sign = safe > 0 ? '+' : ''
+  return `${sign}${safe.toFixed(1)}%`
+}
 
 const formatCompact = (value: number) => {
   const absoluteValue = Math.abs(value || 0)
@@ -263,6 +269,41 @@ export function DashboardGrid() {
       ? Math.min((data.due.customerAdvance.total / data.sales.thisMonth.total) * 100, 100)
       : 0
 
+  const exploreCards = [
+    {
+      title: 'Collections Focus',
+      caption: 'Customer due and payment risk',
+      value: formatCurrency(data.kpis.exposure.receivable),
+      helper: `${data.due.customerDue.count} customers pending collection`,
+      tone: 'orange.50',
+      border: 'orange.100',
+    },
+    {
+      title: 'Inventory Risk',
+      caption: 'Low and out-of-stock pressure',
+      value: `${data.stock.outOfStock.count + data.stock.lowStock.count}`,
+      helper: `${data.stock.outOfStock.count} out, ${data.stock.lowStock.count} low stock`,
+      tone: 'red.50',
+      border: 'red.100',
+    },
+    {
+      title: 'Cashflow Health',
+      caption: 'Current month net cashflow',
+      value: formatCurrency(data.kpis.cashflow.netCashflowThisMonth),
+      helper: `Sales ${formatCurrency(data.kpis.cashflow.salesInflowThisMonth)} vs Purchases ${formatCurrency(data.kpis.cashflow.purchaseOutflowThisMonth)}`,
+      tone: 'teal.50',
+      border: 'teal.100',
+    },
+    {
+      title: 'Growth Signal',
+      caption: 'Month-over-month momentum',
+      value: formatPercent(data.kpis.growth.salesMoMPercent),
+      helper: `Profit trend ${formatPercent(data.kpis.growth.profitMoMPercent)}`,
+      tone: 'blue.50',
+      border: 'blue.100',
+    },
+  ]
+
   return (
     <Stack gap={6}>
       <Box
@@ -299,11 +340,11 @@ export function DashboardGrid() {
                 lineHeight="0.96"
                 letterSpacing="-0.05em"
               >
-                Sales are active. Inventory still carries heavy capital.
+                See profit, cashflow, dues, and stock decisions in one place.
               </Heading>
               <Text maxW="680px" mt={3} color="whiteAlpha.800" fontSize={{ base: 'md', md: 'lg' }}>
-                This dashboard tracks momentum, cash exposure, stock health, and collections so the
-                shop owner can see pressure points without opening five modules.
+                Faster business decisions with clear signals: what is selling, where money is stuck,
+                and what needs action today.
               </Text>
             </Box>
 
@@ -323,26 +364,29 @@ export function DashboardGrid() {
 
               <Box bg="whiteAlpha.100" p={4} borderRadius="24px">
                 <Text fontSize="sm" color="whiteAlpha.700">
-                  Purchase exposure
+                  Net cashflow
                 </Text>
                 <Text mt={2} fontSize="2xl" fontWeight="800">
-                  {formatCurrency(data.purchases.allTime.total)}
+                  {formatCurrency(data.kpis.cashflow.netCashflowThisMonth)}
                 </Text>
                 <HStack mt={2} color="orange.200" fontSize="sm">
                   <ArrowDownRight size={16} />
-                  <Text>{data.purchases.allTime.count} purchase entries</Text>
+                  <Text>
+                    In {formatCurrency(data.kpis.cashflow.salesInflowThisMonth)} out{' '}
+                    {formatCurrency(data.kpis.cashflow.purchaseOutflowThisMonth)}
+                  </Text>
                 </HStack>
               </Box>
 
               <Box bg="whiteAlpha.100" p={4} borderRadius="24px">
                 <Text fontSize="sm" color="whiteAlpha.700">
-                  Net all-time profit
+                  MoM sales growth
                 </Text>
                 <Text mt={2} fontSize="2xl" fontWeight="800">
-                  {formatCurrency(data.profit.allTime)}
+                  {formatPercent(data.kpis.growth.salesMoMPercent)}
                 </Text>
                 <Text mt={2} fontSize="sm" color="whiteAlpha.800">
-                  Margin signal from recorded history
+                  Profit trend {formatPercent(data.kpis.growth.profitMoMPercent)}
                 </Text>
               </Box>
             </Grid>
@@ -358,7 +402,11 @@ export function DashboardGrid() {
                 { label: 'Products', value: data.totals.products, icon: <Package2 size={16} /> },
                 { label: 'Customers', value: data.totals.customers, icon: <Users size={16} /> },
                 { label: 'Categories', value: data.totals.categories, icon: <Boxes size={16} /> },
-                { label: 'Staff', value: data.totals.staff, icon: <CreditCard size={16} /> },
+                {
+                  label: 'Suppliers',
+                  value: data.totals.suppliers,
+                  icon: <CreditCard size={16} />,
+                },
               ].map((item) => (
                 <Box key={item.label} p={4} borderRadius="22px" bg="gray.50">
                   <HStack justify="space-between" mb={3} color="gray.500">
@@ -417,27 +465,55 @@ export function DashboardGrid() {
           tone="warm"
         />
         <StatTile
-          label="Purchases all time"
-          value={formatCurrency(data.purchases.allTime.total)}
-          helper={`${data.purchases.allTime.count} purchase bills recorded`}
+          label="Receivable"
+          value={formatCurrency(data.kpis.exposure.receivable)}
+          helper={`${data.due.customerDue.count} customers pending`}
           icon={<Wallet size={22} />}
           tone="dark"
         />
         <StatTile
-          label="Stock sale value"
-          value={formatCurrency(data.stock.stockValue.atSellingPrice)}
-          helper={`Purchase value ${formatCompact(data.stock.stockValue.atPurchasePrice)}`}
+          label="Payable"
+          value={formatCurrency(data.kpis.exposure.payable)}
+          helper={`${data.due.supplierDue.count} suppliers pending`}
           icon={<Package2 size={22} />}
           tone="cool"
         />
         <StatTile
-          label="Customer advance"
-          value={formatCurrency(data.due.customerAdvance.total)}
-          helper={`${data.due.customerAdvance.count} accounts with advance balance`}
+          label="Net exposure"
+          value={formatCurrency(data.kpis.exposure.netExposure)}
+          helper={`Advance buffer ${formatCurrency(data.kpis.exposure.customerAdvance)}`}
           icon={<BadgeIndianRupee size={22} />}
           tone="dark"
         />
       </Grid>
+
+      <DashboardCard
+        title="Explore Your Business"
+        subtitle="Start with the section that needs immediate attention"
+      >
+        <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)', xl: 'repeat(4, 1fr)' }} gap={3}>
+          {exploreCards.map((card) => (
+            <Box
+              key={card.title}
+              p={4}
+              borderRadius="22px"
+              bg={card.tone}
+              border="1px solid"
+              borderColor={card.border}
+            >
+              <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
+                {card.caption}
+              </Text>
+              <Text mt={2} fontSize="xl" fontWeight="800" color="gray.900">
+                {card.value}
+              </Text>
+              <Text mt={1.5} fontSize="sm" color="gray.600">
+                {card.helper}
+              </Text>
+            </Box>
+          ))}
+        </Grid>
+      </DashboardCard>
 
       <Grid templateColumns={{ base: '1fr', xl: '1.45fr 0.95fr' }} gap={4}>
         <DashboardCard
@@ -720,7 +796,7 @@ export function DashboardGrid() {
                 Recent sales
               </Text>
               <Box overflowX="auto">
-                <Table.Root size="sm" variant="outline">
+                <Table.Root size="sm" variant="subtle">
                   <Table.Header>
                     <Table.Row>
                       <Table.ColumnHeader>Invoice</Table.ColumnHeader>
@@ -760,7 +836,7 @@ export function DashboardGrid() {
                 Recent purchases
               </Text>
               <Box overflowX="auto">
-                <Table.Root size="sm" variant="outline">
+                <Table.Root size="sm" variant="subtle">
                   <Table.Header>
                     <Table.Row>
                       <Table.ColumnHeader>Invoice</Table.ColumnHeader>
@@ -900,7 +976,15 @@ export function DashboardGrid() {
         <Text fontSize="sm" color="gray.500">
           {isFetching ? 'Refreshing dashboard...' : 'Dashboard synced with live merchant stats.'}
         </Text>
-        <Button size="sm" variant="outline" onClick={() => refetch()}>
+        <Button
+          size="sm"
+          bg="gray.900"
+          color="white"
+          border="1px solid"
+          borderColor="gray.900"
+          _hover={{ bg: 'gray.800', color: 'white', borderColor: 'gray.800' }}
+          onClick={() => refetch()}
+        >
           Refresh dashboard
         </Button>
       </Flex>

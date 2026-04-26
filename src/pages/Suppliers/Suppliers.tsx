@@ -1,5 +1,5 @@
-import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack } from '@chakra-ui/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+﻿import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack } from '@chakra-ui/react'
+import { useEffect, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { Plus, RefreshCw } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -10,12 +10,14 @@ import API_ENDPOINTS from '@/api/apiEndpoints'
 import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 import { CommonTable } from '@/components/common/CommonTable'
 import { ExpandableSearch } from '@/components/common/ExpandableSearch'
+import { DateInputWithIcon } from '@/components/common/DateInputWithIcon'
+import { FilterDrawer } from '@/components/common/FilterDrawer'
 import { FaEdit, FaTrash } from '@/components/icons'
 import ConfirmDeleteDialog from '@/components/modals/ConfirmDelete'
 import SupplierModal, { SupplierFormValues } from '@/components/modals/SupplierModal'
 import { TableActionsPopover } from '@/components/popovers/TableActionsPopover'
 
-import { useSupplier } from '@/hooks/useSupplier'
+import { useSuppliers } from '@/hooks/useSupplier'
 import { useSupplierActions } from '@/hooks/useSupplierActions'
 
 type SupplierSortKey =
@@ -60,6 +62,12 @@ function Suppliers() {
   const [debouncedSearch, setDebouncedSearch] = useState(search)
   const [sortBy, setSortBy] = useState<SupplierSortKey>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [minPending, setMinPending] = useState('')
+  const [maxPending, setMaxPending] = useState('')
+  const [minPurchase, setMinPurchase] = useState('')
+  const [maxPurchase, setMaxPurchase] = useState('')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
 
   const [page, setPage] = useState(1)
   const limit = 20
@@ -68,8 +76,29 @@ function Suppliers() {
   const [isImporting, setIsImporting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const { data: suppliersData = [], isLoading } = useSupplier()
+  const { data: suppliersResponse, isLoading } = useSuppliers({
+    page,
+    limit,
+    search: debouncedSearch || undefined,
+    sortBy,
+    sortOrder,
+    minPending: minPending ? Number(minPending) : undefined,
+    maxPending: maxPending ? Number(maxPending) : undefined,
+    minPurchase: minPurchase ? Number(minPurchase) : undefined,
+    maxPurchase: maxPurchase ? Number(maxPurchase) : undefined,
+    fromDate: fromDate || undefined,
+    toDate: toDate || undefined,
+  })
   const { deleteSupplier } = useSupplierActions()
+
+  const suppliers = suppliersResponse?.suppliers || []
+  const pagination = suppliersResponse?.pagination || {
+    currentPage: 1,
+    totalPages: 1,
+    totalSuppliers: suppliers.length,
+    hasNextPage: false,
+    hasPrevPage: false,
+  }
 
   const handleDownloadTemplate = async () => {
     try {
@@ -164,68 +193,41 @@ function Suppliers() {
 
   useEffect(() => {
     setPage(1)
-  }, [debouncedSearch, sortBy, sortOrder])
-
-  const filteredAndSorted = useMemo(() => {
-    const keyword = debouncedSearch.trim().toLowerCase()
-
-    const filtered = keyword
-      ? suppliersData.filter((s) => {
-          const haystack = [s.name, s.mobileNumber, s.address || ''].join(' ').toLowerCase()
-          return haystack.includes(keyword)
-        })
-      : suppliersData
-
-    const sorted = [...filtered].sort((a, b) => {
-      const dir = sortOrder === 'asc' ? 1 : -1
-
-      if (sortBy === 'pendingAmount') {
-        return ((a.pendingAmount || 0) - (b.pendingAmount || 0)) * dir
-      }
-
-      if (sortBy === 'totalPurchaseAmount') {
-        return ((a.totalPurchaseAmount || 0) - (b.totalPurchaseAmount || 0)) * dir
-      }
-
-      if (sortBy === 'createdAt') {
-        return (
-          ((new Date(a.createdAt || 0).getTime() || 0) -
-            (new Date(b.createdAt || 0).getTime() || 0)) *
-          dir
-        )
-      }
-
-      return (
-        String(a[sortBy as keyof typeof a] || '').localeCompare(
-          String(b[sortBy as keyof typeof b] || ''),
-          'en',
-          {
-            sensitivity: 'base',
-          },
-        ) * dir
-      )
-    })
-
-    return sorted
-  }, [suppliersData, debouncedSearch, sortBy, sortOrder])
-
-  const suppliers = useMemo(() => {
-    const start = (page - 1) * limit
-    return filteredAndSorted.slice(start, start + limit)
-  }, [filteredAndSorted, page])
-
-  const pagination = {
-    currentPage: page,
-    totalPages: Math.max(1, Math.ceil(filteredAndSorted.length / limit)),
-    hasNextPage: page * limit < filteredAndSorted.length,
-    hasPreviousPage: page > 1,
-  }
+  }, [
+    debouncedSearch,
+    sortBy,
+    sortOrder,
+    minPending,
+    maxPending,
+    minPurchase,
+    maxPurchase,
+    fromDate,
+    toDate,
+  ])
 
   const summary = {
-    total: filteredAndSorted.length,
+    total: pagination.totalSuppliers || suppliers.length,
     showing: suppliers.length,
     activePage: pagination.currentPage,
     totalPages: pagination.totalPages,
+  }
+
+  const activeFilterCount = [
+    Boolean(minPending),
+    Boolean(maxPending),
+    Boolean(minPurchase),
+    Boolean(maxPurchase),
+    Boolean(fromDate),
+    Boolean(toDate),
+  ].filter(Boolean).length
+
+  const clearFilters = () => {
+    setMinPending('')
+    setMaxPending('')
+    setMinPurchase('')
+    setMaxPurchase('')
+    setFromDate('')
+    setToDate('')
   }
 
   const activeSortLabel =
@@ -318,8 +320,15 @@ function Suppliers() {
         px={{ base: 4, md: 6 }}
         py={{ base: 4, md: 5 }}
       >
-        <SimpleGrid columns={{ base: 2, md: 4 }} gap={3}>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+        <SimpleGrid minChildWidth={{ base: '140px', md: '180px' }} gap={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Total
             </Text>
@@ -327,7 +336,14 @@ function Suppliers() {
               {summary.total}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Showing
             </Text>
@@ -335,7 +351,14 @@ function Suppliers() {
               {summary.showing}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Page
             </Text>
@@ -343,7 +366,14 @@ function Suppliers() {
               {summary.activePage}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Total Pages
             </Text>
@@ -381,15 +411,108 @@ function Suppliers() {
             >
               Sorted by {activeSortLabel} ({sortOrder === 'asc' ? 'Ascending' : 'Descending'})
             </Text>
+            <FilterDrawer
+              title="Supplier Filters"
+              subtitle="Filter by pending/purchase ranges and created date range."
+              activeCount={activeFilterCount}
+              onClearAll={clearFilters}
+              sections={[
+                {
+                  key: 'pending',
+                  title: 'Pending Amount Range',
+                  description: 'Min/Max pending filters supplier payable pending amount.',
+                  content: (
+                    <HStack>
+                      <input
+                        value={minPending}
+                        onChange={(e) => setMinPending(e.target.value)}
+                        placeholder="Min pending"
+                        type="number"
+                        style={{
+                          width: '100%',
+                          height: '40px',
+                          border: '1px solid #CBD5E0',
+                          borderRadius: '12px',
+                          padding: '0 10px',
+                          background: 'white',
+                        }}
+                      />
+                      <input
+                        value={maxPending}
+                        onChange={(e) => setMaxPending(e.target.value)}
+                        placeholder="Max pending"
+                        type="number"
+                        style={{
+                          width: '100%',
+                          height: '40px',
+                          border: '1px solid #CBD5E0',
+                          borderRadius: '12px',
+                          padding: '0 10px',
+                          background: 'white',
+                        }}
+                      />
+                    </HStack>
+                  ),
+                },
+                {
+                  key: 'purchase',
+                  title: 'Purchase Amount Range',
+                  description: 'Min/Max purchase filters supplier total purchase amount.',
+                  content: (
+                    <HStack>
+                      <input
+                        value={minPurchase}
+                        onChange={(e) => setMinPurchase(e.target.value)}
+                        placeholder="Min purchase"
+                        type="number"
+                        style={{
+                          width: '100%',
+                          height: '40px',
+                          border: '1px solid #CBD5E0',
+                          borderRadius: '12px',
+                          padding: '0 10px',
+                          background: 'white',
+                        }}
+                      />
+                      <input
+                        value={maxPurchase}
+                        onChange={(e) => setMaxPurchase(e.target.value)}
+                        placeholder="Max purchase"
+                        type="number"
+                        style={{
+                          width: '100%',
+                          height: '40px',
+                          border: '1px solid #CBD5E0',
+                          borderRadius: '12px',
+                          padding: '0 10px',
+                          background: 'white',
+                        }}
+                      />
+                    </HStack>
+                  ),
+                },
+                {
+                  key: 'date',
+                  title: 'Created Date Range',
+                  description: 'From and To date apply to supplier created date.',
+                  content: (
+                    <VStack align="stretch" gap={2}>
+                      <DateInputWithIcon value={fromDate} onChange={setFromDate} />
+                      <DateInputWithIcon value={toDate} onChange={setToDate} />
+                    </VStack>
+                  ),
+                },
+              ]}
+            />
           </HStack>
 
           <HStack gap={2}>
             <Button
-              bg="gray.950"
+              bg="teal.700"
               color="white"
               h="38px"
               px={4}
-              _hover={{ bg: 'gray.800' }}
+              _hover={{ bg: 'teal.800' }}
               onClick={() => {
                 setDialogMode('add')
                 setEditId(null)
@@ -406,7 +529,7 @@ function Suppliers() {
             </Button>
 
             <Button
-              variant="outline"
+              variant="subtle"
               bg="white"
               color="black"
               borderColor="gray.300"
@@ -498,7 +621,7 @@ function Suppliers() {
               border="1px solid"
               borderColor="gray.200"
               _hover={{ bg: 'gray.50' }}
-              disabled={!pagination.hasPreviousPage}
+              disabled={!pagination.hasPrevPage}
             >
               Previous
             </Button>
@@ -508,11 +631,11 @@ function Suppliers() {
               return (
                 <Button
                   key={pg}
-                  bg={pg === pagination.currentPage ? 'gray.900' : 'white'}
-                  color={pg === pagination.currentPage ? 'white' : 'gray.800'}
+                  bg={pg === pagination.currentPage ? 'teal.700' : 'white'}
+                  color={pg === pagination.currentPage ? 'white' : 'gray.700'}
                   border="1px solid"
-                  borderColor={pg === pagination.currentPage ? 'gray.900' : 'gray.200'}
-                  _hover={{ bg: pg === pagination.currentPage ? 'gray.900' : 'gray.100' }}
+                  borderColor={pg === pagination.currentPage ? 'teal.700' : 'teal.100'}
+                  _hover={{ bg: pg === pagination.currentPage ? 'teal.700' : 'teal.50' }}
                   onClick={() => setPage(pg)}
                 >
                   {pg}
@@ -533,7 +656,7 @@ function Suppliers() {
           </HStack>
 
           <Text fontSize="xs" color="gray.600">
-            Showing {suppliers.length} of {filteredAndSorted.length} suppliers
+            Showing {suppliers.length} of {summary.total} suppliers
           </Text>
         </VStack>
       </Flex>

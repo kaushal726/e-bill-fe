@@ -8,6 +8,7 @@ type CountTotal = {
 }
 
 type StatusBucket = {
+  pending: CountTotal
   paid: CountTotal
   partial: CountTotal
   advance: CountTotal
@@ -99,6 +100,24 @@ type DashboardStats = {
   profit: {
     thisMonth: number
     allTime: number
+  }
+  kpis: {
+    cashflow: {
+      salesInflowThisMonth: number
+      purchaseOutflowThisMonth: number
+      netCashflowThisMonth: number
+    }
+    exposure: {
+      receivable: number
+      payable: number
+      customerAdvance: number
+      netExposure: number
+    }
+    growth: {
+      salesMoMPercent: number
+      purchasesMoMPercent: number
+      profitMoMPercent: number
+    }
   }
   due: {
     customerDue: CountTotal

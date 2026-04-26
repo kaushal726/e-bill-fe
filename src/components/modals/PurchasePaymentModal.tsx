@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Dialog, Portal, Button, Input, Field, Text, useMediaQuery } from '@chakra-ui/react'
 import { X } from 'lucide-react'
 import { usePurchaseActions } from '@/hooks/usePurchaseActions'
@@ -117,7 +117,7 @@ export default function PurchasePaymentModal({
             <Dialog.Footer gap={3} justifyContent="flex-end">
               <Dialog.ActionTrigger asChild>
                 <Button
-                  variant="outline"
+                  variant="subtle"
                   minW="120px"
                   width="50%"
                   color="gray.700"

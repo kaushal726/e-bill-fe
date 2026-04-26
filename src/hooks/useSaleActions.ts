@@ -14,8 +14,15 @@ export type SaleCreatePayload = {
   items: Array<{
     productId: string
     quantity: number
-    price: number
-    discount?: number
+    price?: number
+    discountType?: 'percentage' | 'absolute'
+    discountValue?: number
+    gstPercentage?: number
+    gstInclusive?: boolean
+  }>
+  extraCharges?: Array<{
+    label?: string
+    amount: number
   }>
   paidAmount?: number
   note?: string

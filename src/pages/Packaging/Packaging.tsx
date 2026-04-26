@@ -7,6 +7,7 @@ import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 import { CommonTable } from '@/components/common/CommonTable'
 import { TableActionsPopover } from '@/components/popovers/TableActionsPopover'
 import { FilterSelect } from '@/components/common/FilterSelect'
+import { FilterDrawer } from '@/components/common/FilterDrawer'
 import type { SortKey } from '@/components/popovers/TableActionsPopover'
 
 /* ------------------ Fake Packaging Data ------------------ */
@@ -127,18 +128,36 @@ const Packaging = () => {
     { label: 'Low stock', value: 'low' },
   ]
 
+  const activeFilterCount = !filter.includes('all') ? 1 : 0
+
   const totalPages = 1
 
   return (
     <Flex bg="gray.100" width="100%" minH="100%" flexDir="column" px={6}>
       {/* Header Row */}
       <Flex justify="space-between" align="center" mt={8}>
-        <FilterSelect
-          options={packagingFilters}
-          value={filter}
-          defaultValue={['all']}
-          placeholder="All packaging"
-          onChange={setFilter}
+        <FilterDrawer
+          title="Packaging Filters"
+          subtitle="Filter packaging records by stock status."
+          activeCount={activeFilterCount}
+          onClearAll={() => setFilter(['all'])}
+          sections={[
+            {
+              key: 'status',
+              title: 'Stock Status',
+              description: 'Available or low stock packaging items.',
+              content: (
+                <FilterSelect
+                  options={packagingFilters}
+                  value={filter}
+                  defaultValue={['all']}
+                  placeholder="All packaging"
+                  width="100%"
+                  onChange={setFilter}
+                />
+              ),
+            },
+          ]}
         />
 
         <HStack gap={2}>

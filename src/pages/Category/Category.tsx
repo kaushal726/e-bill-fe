@@ -1,5 +1,5 @@
-import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack } from '@chakra-ui/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+﻿import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack } from '@chakra-ui/react'
+import { useEffect, useRef, useState } from 'react'
 import { Plus, RefreshCw } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { useQueryClient } from '@tanstack/react-query'
@@ -8,6 +8,8 @@ import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 import { TableActionsPopover } from '@/components/popovers/TableActionsPopover'
 import { CommonTable } from '@/components/common/CommonTable'
 import { ExpandableSearch } from '@/components/common/ExpandableSearch'
+import { DateInputWithIcon } from '@/components/common/DateInputWithIcon'
+import { FilterDrawer } from '@/components/common/FilterDrawer'
 
 import { FaEdit, FaTrash } from '@/components/icons'
 import CategoryModal, { CategoryFormValues } from '@/components/modals/CategoryModal'
@@ -17,8 +19,6 @@ import { useCategory } from '@/hooks/useCategory'
 import { useCategoryActions } from '@/hooks/useCategoryActions'
 import { useCategoryImport } from '@/hooks/useCategoryImport'
 import { useCategoryExport } from '@/hooks/useCategoryExport'
-
-import { isFrontendPagination } from '@/utils/isFrontendPagination'
 
 function Categories() {
   const dispatch = useDispatch()
@@ -36,11 +36,11 @@ function Categories() {
   const [debouncedSearch, setDebouncedSearch] = useState(search)
   const [sortBy, setSortBy] = useState<string>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
 
   const [page, setPage] = useState(1)
   const limit = 20
-
-  const frontend = isFrontendPagination(sortBy, sortOrder)
 
   const { deleteCategory } = useCategoryActions()
   const importCategories = useCategoryImport()
@@ -54,35 +54,29 @@ function Categories() {
   }, [search])
 
   const { data, isLoading } = useCategory({
+    page,
+    limit,
     search: debouncedSearch || undefined,
-    ...(frontend ? { sortBy, sortOrder } : { page, limit }),
+    sortBy,
+    sortOrder,
+    fromDate: fromDate || undefined,
+    toDate: toDate || undefined,
   })
 
   const rawCategories = data?.categories ?? []
+  const categories = rawCategories
 
-  const categories = useMemo(() => {
-    if (!frontend) return rawCategories
-    const start = (page - 1) * limit
-    return rawCategories.slice(start, start + limit)
-  }, [rawCategories, page, limit, frontend])
-
-  const pagination = frontend
-    ? {
-        currentPage: page,
-        totalPages: Math.max(1, Math.ceil(rawCategories.length / limit)),
-        hasNextPage: page * limit < rawCategories.length,
-        hasPreviousPage: page > 1,
-      }
-    : (data?.pagination ?? {
-        currentPage: 1,
-        totalPages: 1,
-        hasNextPage: false,
-        hasPreviousPage: false,
-      })
+  const pagination = data?.pagination ?? {
+    currentPage: 1,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false,
+    totalCategories: rawCategories.length,
+  }
 
   useEffect(() => {
     setPage(1)
-  }, [search, sortBy, sortOrder])
+  }, [search, sortBy, sortOrder, fromDate, toDate])
 
   useEffect(() => {
     dispatch(
@@ -171,10 +165,17 @@ function Categories() {
   }
 
   const summary = {
-    total: rawCategories.length,
+    total: data?.pagination?.totalCategories ?? rawCategories.length,
     activePage: pagination.currentPage,
     totalPages: pagination.totalPages,
     showing: categories.length,
+  }
+
+  const activeFilterCount = [Boolean(fromDate), Boolean(toDate)].filter(Boolean).length
+
+  const clearFilters = () => {
+    setFromDate('')
+    setToDate('')
   }
 
   return (
@@ -195,8 +196,15 @@ function Categories() {
         px={{ base: 4, md: 6 }}
         py={{ base: 4, md: 5 }}
       >
-        <SimpleGrid columns={{ base: 2, md: 4 }} gap={3}>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+        <SimpleGrid minChildWidth={{ base: '140px', md: '180px' }} gap={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Total
             </Text>
@@ -204,7 +212,14 @@ function Categories() {
               {summary.total}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Showing
             </Text>
@@ -212,7 +227,14 @@ function Categories() {
               {summary.showing}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Page
             </Text>
@@ -220,7 +242,14 @@ function Categories() {
               {summary.activePage}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Total Pages
             </Text>
@@ -242,7 +271,7 @@ function Categories() {
             <ExpandableSearch
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search categories…"
+              placeholder="Search categories..."
               expandedWidth="300px"
             />
             <Text
@@ -257,15 +286,34 @@ function Categories() {
             >
               Sorted by {sortBy} ({sortOrder})
             </Text>
+            <FilterDrawer
+              title="Category Filters"
+              subtitle="Use date range to narrow categories by created date."
+              activeCount={activeFilterCount}
+              onClearAll={clearFilters}
+              sections={[
+                {
+                  key: 'date',
+                  title: 'Created Date Range',
+                  description: 'From and To date apply on category created date.',
+                  content: (
+                    <VStack align="stretch" gap={2}>
+                      <DateInputWithIcon value={fromDate} onChange={setFromDate} />
+                      <DateInputWithIcon value={toDate} onChange={setToDate} />
+                    </VStack>
+                  ),
+                },
+              ]}
+            />
           </HStack>
 
           <HStack gap={2} justify={{ base: 'space-between', md: 'flex-end' }}>
             <Button
-              bg="gray.950"
+              bg="teal.700"
               color="white"
               h="38px"
               px={4}
-              _hover={{ bg: 'gray.800' }}
+              _hover={{ bg: 'teal.800' }}
               onClick={() => {
                 setDialogMode('add')
                 setEditId(null)
@@ -282,7 +330,7 @@ function Categories() {
             </Button>
 
             <Button
-              variant="outline"
+              variant="subtle"
               bg="white"
               color="black"
               borderColor="gray.300"
@@ -368,11 +416,11 @@ function Categories() {
               return (
                 <Button
                   key={pg}
-                  bg={pg === pagination.currentPage ? 'gray.900' : 'white'}
-                  color={pg === pagination.currentPage ? 'white' : 'gray.800'}
+                  bg={pg === pagination.currentPage ? 'teal.700' : 'white'}
+                  color={pg === pagination.currentPage ? 'white' : 'gray.700'}
                   border="1px solid"
-                  borderColor={pg === pagination.currentPage ? 'gray.900' : 'gray.200'}
-                  _hover={{ bg: pg === pagination.currentPage ? 'gray.900' : 'gray.100' }}
+                  borderColor={pg === pagination.currentPage ? 'teal.700' : 'teal.100'}
+                  _hover={{ bg: pg === pagination.currentPage ? 'teal.700' : 'teal.50' }}
                   onClick={() => setPage(pg)}
                 >
                   {pg}
@@ -393,7 +441,7 @@ function Categories() {
           </HStack>
 
           <Text fontSize="xs" color="gray.600">
-            Showing {categories.length} of {rawCategories.length} categories
+            Showing {categories.length} of {summary.total} categories
           </Text>
         </VStack>
       </Flex>

@@ -1,4 +1,4 @@
-import { Box, Text, HStack, VStack, Button, Separator } from '@chakra-ui/react'
+﻿import { Box, Text, HStack, VStack, Button, Separator } from '@chakra-ui/react'
 import { Card } from '../Card'
 
 type Item = {
@@ -23,7 +23,7 @@ export function TopStockedItems() {
         <Text fontSize="sm" color="gray.500">
           As of:{' '}
           <Text as="span" color="gray.800">
-            This Month ▾
+            This Month â–¾
           </Text>
         </Text>
       </HStack>
@@ -32,7 +32,7 @@ export function TopStockedItems() {
         <Button size="xs" colorPalette="blue">
           By Quantity
         </Button>
-        <Button size="xs" variant="outline">
+        <Button size="xs" variant="subtle">
           By Value
         </Button>
       </HStack>

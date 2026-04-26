@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Dialog, Portal, Button, Input, Field, useMediaQuery } from '@chakra-ui/react'
 import { X } from 'lucide-react'
 
@@ -90,7 +90,7 @@ export default function InvoiceModal({ open, onClose, mode, defaultValues }: Inv
 
             <Dialog.Footer gap={3} justifyContent="flex-end">
               <Dialog.ActionTrigger asChild>
-                <Button variant="outline" width="50%">
+                <Button variant="subtle" width="50%">
                   Cancel
                 </Button>
               </Dialog.ActionTrigger>

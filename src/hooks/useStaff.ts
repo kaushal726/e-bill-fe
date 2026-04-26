@@ -9,6 +9,7 @@ export type StaffRecord = {
   role: string
   baseSalary: number
   salaryPerWeek: number
+  sundayPolicy: 'regular' | 'paid_off' | 'halfday_paid_full'
   joinDate: string
   isActive: boolean
   createdAt?: string

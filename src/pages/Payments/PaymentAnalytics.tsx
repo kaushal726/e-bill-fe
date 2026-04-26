@@ -1,4 +1,4 @@
-import { Box, Flex, HStack, SimpleGrid, Text, VStack, Badge, Button } from '@chakra-ui/react'
+﻿import { Box, Flex, HStack, SimpleGrid, Text, VStack, Badge, Button } from '@chakra-ui/react'
 import { useEffect, useMemo } from 'react'
 import { useDispatch } from 'react-redux'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
@@ -70,7 +70,14 @@ const PaymentAnalytics = () => {
       </HStack>
 
       <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap={3}>
-        <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+        <Box
+          bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+          border="1px solid"
+          borderColor="teal.100"
+          borderRadius="14px"
+          p={2.5}
+          boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+        >
           <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
             To Collect (Customers)
           </Text>
@@ -79,7 +86,14 @@ const PaymentAnalytics = () => {
           </Text>
         </Box>
 
-        <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+        <Box
+          bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+          border="1px solid"
+          borderColor="teal.100"
+          borderRadius="14px"
+          p={2.5}
+          boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+        >
           <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
             To Pay (Suppliers)
           </Text>
@@ -88,7 +102,14 @@ const PaymentAnalytics = () => {
           </Text>
         </Box>
 
-        <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+        <Box
+          bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+          border="1px solid"
+          borderColor="teal.100"
+          borderRadius="14px"
+          p={2.5}
+          boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+        >
           <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
             Net Outstanding
           </Text>
@@ -102,7 +123,14 @@ const PaymentAnalytics = () => {
           </Text>
         </Box>
 
-        <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+        <Box
+          bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+          border="1px solid"
+          borderColor="teal.100"
+          borderRadius="14px"
+          p={2.5}
+          boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+        >
           <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
             Transactions
           </Text>
@@ -289,7 +317,7 @@ const PaymentAnalytics = () => {
                       '-'}
                   </Text>
                   <Text fontSize="xs" color="gray.500" textTransform="capitalize">
-                    {payment.paidToType} • {payment.paymentMode}
+                    {payment.paidToType} {payment.paymentMode}
                   </Text>
                 </VStack>
                 <VStack align="end" gap={0}>

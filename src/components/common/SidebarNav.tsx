@@ -40,7 +40,7 @@ const sections = [
     label: 'Team',
     items: [
       { label: 'Staff', path: '/staff', icon: FiUsers },
-      { label: 'Attendance', path: '/attendance', icon: FaRegClipboard },
+      { label: 'Attendance & Payroll', path: '/attendance', icon: FaRegClipboard },
     ],
   },
 ]

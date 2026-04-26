@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Dialog, Portal, Button, Input, Field, useMediaQuery } from '@chakra-ui/react'
+﻿import { useEffect, useState } from 'react'
+import { Dialog, Portal, Button, Input, Field, useMediaQuery, Box, Text } from '@chakra-ui/react'
 import { X } from 'lucide-react'
 import { useStaffActions } from '@/hooks/useStaffActions'
 import { DateInputWithIcon } from '@/components/common/DateInputWithIcon'
@@ -12,6 +12,7 @@ export interface StaffFormValues {
   role: string
   baseSalary: string
   salaryPerWeek: string
+  sundayPolicy: 'regular' | 'paid_off' | 'halfday_paid_full'
   joinDate: string
 }
 
@@ -44,6 +45,7 @@ export default function StaffDialog({
     role: '',
     baseSalary: '',
     salaryPerWeek: '',
+    sundayPolicy: 'regular',
     joinDate: '',
   })
 
@@ -59,12 +61,13 @@ export default function StaffDialog({
         role: '',
         baseSalary: '',
         salaryPerWeek: '',
+        sundayPolicy: 'regular',
         joinDate: getTodayDate(),
       })
     }
   }, [defaultValues, mode])
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
@@ -75,6 +78,7 @@ export default function StaffDialog({
       role: formData.role,
       baseSalary: Number(formData.baseSalary),
       salaryPerWeek: Number(formData.salaryPerWeek),
+      sundayPolicy: formData.sundayPolicy,
       joinDate: formData.joinDate,
     }
 
@@ -150,6 +154,31 @@ export default function StaffDialog({
                 />
               </Field.Root>
 
+              <Field.Root mb={3}>
+                <Field.Label>Sunday Salary Rule</Field.Label>
+                <Box
+                  as="select"
+                  name="sundayPolicy"
+                  value={formData.sundayPolicy}
+                  onChange={handleChange}
+                  width="100%"
+                  height="40px"
+                  px={3}
+                  borderRadius="md"
+                  border="1px solid"
+                  borderColor="gray.200"
+                  bg="white"
+                >
+                  <option value="regular">Regular day rules</option>
+                  <option value="paid_off">Sunday off with full pay</option>
+                  <option value="halfday_paid_full">Sunday half day counts as full pay</option>
+                </Box>
+              </Field.Root>
+
+              <Text fontSize="sm" color="gray.600" mb={3}>
+                Choose how Sunday salary should be handled for this staff member.
+              </Text>
+
               <Field.Root>
                 <Field.Label>Join Date</Field.Label>
                 <DateInputWithIcon
@@ -163,7 +192,7 @@ export default function StaffDialog({
             <Dialog.Footer gap={3} justifyContent="flex-end">
               <Dialog.ActionTrigger asChild>
                 <Button
-                  variant="outline"
+                  variant="subtle"
                   minW="120px"
                   width="50%"
                   color="gray.700"

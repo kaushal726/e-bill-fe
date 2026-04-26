@@ -7,6 +7,7 @@ import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 import { CommonTable } from '@/components/common/CommonTable'
 import { TableActionsPopover } from '@/components/popovers/TableActionsPopover'
 import { FilterSelect } from '@/components/common/FilterSelect'
+import { FilterDrawer } from '@/components/common/FilterDrawer'
 import type { SortKey } from '@/components/popovers/TableActionsPopover'
 
 /* ------------------ Fake Shipment Data ------------------ */
@@ -162,18 +163,36 @@ const Shipments = () => {
     { label: 'Delivered', value: 'delivered' },
   ]
 
+  const activeFilterCount = !filter.includes('all') ? 1 : 0
+
   const totalPages = 1
 
   return (
     <Flex bg="gray.100" width="100%" minH="100%" flexDir="column" px={6}>
       {/* Header Row */}
       <Flex justify="space-between" align="center" mt={8}>
-        <FilterSelect
-          options={shipmentFilters}
-          value={filter}
-          defaultValue={['all']}
-          placeholder="All shipments"
-          onChange={setFilter}
+        <FilterDrawer
+          title="Shipment Filters"
+          subtitle="Filter shipments by fulfillment status."
+          activeCount={activeFilterCount}
+          onClearAll={() => setFilter(['all'])}
+          sections={[
+            {
+              key: 'status',
+              title: 'Shipment Status',
+              description: 'Pending, in transit, or delivered shipments.',
+              content: (
+                <FilterSelect
+                  options={shipmentFilters}
+                  value={filter}
+                  defaultValue={['all']}
+                  placeholder="All shipments"
+                  width="100%"
+                  onChange={setFilter}
+                />
+              ),
+            },
+          ]}
         />
 
         <HStack gap={2}>

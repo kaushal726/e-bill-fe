@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react'
 import { TableActionsPopover } from '@/components/popovers/TableActionsPopover'
 import { CommonTable } from '@/components/common/CommonTable'
 import { FilterSelect } from '@/components/common/FilterSelect'
+import { FilterDrawer } from '@/components/common/FilterDrawer'
 import { FaEdit, FaTrash } from '@/components/icons/index.ts'
 import type { SortKey } from '@/components/popovers/TableActionsPopover'
 
@@ -95,6 +96,8 @@ function PaymentsReceived() {
     { label: 'Failed', value: 'failed' },
   ]
 
+  const activeFilterCount = !value.includes('all') && value.length > 0 ? 1 : 0
+
   // Pagination (fake for now)
   const limit = 20
   const totalPages = 1
@@ -112,12 +115,28 @@ function PaymentsReceived() {
     <>
       <Flex bg="gray.100" width="100%" minH="100%" flexDir="column" px={6}>
         <Flex justify="space-between" align="center" mt={8} w="100%">
-          <FilterSelect
-            options={paymentFilters}
-            value={value}
-            defaultValue={['all']}
-            placeholder="All payments"
-            onChange={setValue}
+          <FilterDrawer
+            title="Payments Received Filters"
+            subtitle="Filter received payments by transaction status."
+            activeCount={activeFilterCount}
+            onClearAll={() => setValue(['all'])}
+            sections={[
+              {
+                key: 'status',
+                title: 'Transaction Status',
+                description: 'Completed, pending, or failed payment records.',
+                content: (
+                  <FilterSelect
+                    options={paymentFilters}
+                    value={value}
+                    defaultValue={['all']}
+                    placeholder="All payments"
+                    width="100%"
+                    onChange={setValue}
+                  />
+                ),
+              },
+            ]}
           />
 
           <HStack gap={2}>

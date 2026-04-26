@@ -35,11 +35,12 @@ export const FilterSelect = ({
     <Box
       color="gray.800"
       whiteSpace="nowrap"
-      bg="white"
-      rounded="md"
-      shadow="lighterGray"
+      bg="rgba(255,255,255,0.98)"
+      rounded="12px"
+      shadow="0 6px 18px rgba(13, 116, 123, 0.16)"
       border="1px solid"
-      borderColor="gray.100"
+      borderColor="teal.700"
+      overflow="hidden"
     >
       <Select.Root
         collection={collection}
@@ -52,21 +53,35 @@ export const FilterSelect = ({
       >
         <Select.HiddenSelect />
 
-        <Select.Control>
-          <Select.Trigger>
-            <Select.ValueText placeholder={placeholder} color="gray.700" fontSize="md" />
+        <Select.Control h="38px">
+          <Select.Trigger px={3}>
+            <Select.ValueText placeholder={placeholder} color="gray.700" fontSize="sm" />
           </Select.Trigger>
 
           <Select.IndicatorGroup>
-            <Select.Indicator />
+            <Select.Indicator color="teal.700" />
           </Select.IndicatorGroup>
         </Select.Control>
 
         <Portal>
           <Select.Positioner>
-            <Select.Content bg="white" shadow="sm" color="gray.700">
+            <Select.Content
+              bg="white"
+              shadow="0 12px 28px rgba(15, 23, 42, 0.16)"
+              color="gray.700"
+              border="1px solid"
+              borderColor="gray.200"
+              borderRadius="12px"
+              p={1}
+            >
               {collection.items.map((item) => (
-                <Select.Item key={item.value} item={item} _hover={{ bg: 'gray.200' }}>
+                <Select.Item
+                  key={item.value}
+                  item={item}
+                  borderRadius="8px"
+                  _hover={{ bg: 'teal.50' }}
+                  _highlighted={{ bg: 'teal.50' }}
+                >
                   {item.label}
                   <Select.ItemIndicator />
                 </Select.Item>

@@ -54,13 +54,31 @@ export function TableActionsPopover({
   return (
     <Popover.Root positioning={{ placement: 'bottom-end', offset: { mainAxis: 8 } }}>
       <Popover.Trigger asChild>
-        <Button variant="solid" size="sm" px="2">
+        <Button
+          variant="subtle"
+          size="sm"
+          px="2"
+          bg="teal.700"
+          color="white"
+          border="1px solid"
+          borderColor="teal.700"
+          borderRadius="10px"
+          _hover={{ bg: 'teal.800', borderColor: 'teal.800' }}
+        >
           <MoreHorizontal size={18} />
         </Button>
       </Popover.Trigger>
 
       <Popover.Positioner>
-        <Popover.Content w="260px" bg="white" borderRadius="lg" boxShadow="sm" p="2">
+        <Popover.Content
+          w="260px"
+          bg="white"
+          borderRadius="14px"
+          border="1px solid"
+          borderColor="teal.100"
+          boxShadow="0 16px 32px rgba(15, 23, 42, 0.15)"
+          p="2"
+        >
           <VStack align="stretch" gap="1">
             {hasSortOptions ? (
               <Popover.Root
@@ -74,8 +92,8 @@ export function TableActionsPopover({
                     py="2"
                     borderRadius="md"
                     cursor="pointer"
-                    bg={sortOpen ? 'gray.100' : 'transparent'}
-                    _hover={{ bg: 'gray.100' }}
+                    bg={sortOpen ? 'teal.50' : 'transparent'}
+                    _hover={{ bg: 'teal.50' }}
                     onMouseEnter={() => setSortOpen(true)}
                     onMouseLeave={() => setSortOpen(false)}
                   >
@@ -89,8 +107,10 @@ export function TableActionsPopover({
                   <Popover.Content
                     w="220px"
                     bg="white"
-                    borderRadius="lg"
-                    boxShadow="sm"
+                    borderRadius="14px"
+                    border="1px solid"
+                    borderColor="teal.100"
+                    boxShadow="0 16px 32px rgba(15, 23, 42, 0.15)"
                     p="2"
                     onMouseEnter={() => setSortOpen(true)}
                     onMouseLeave={() => setSortOpen(false)}
@@ -106,10 +126,10 @@ export function TableActionsPopover({
                             py="2"
                             borderRadius="md"
                             cursor="pointer"
-                            bg={active ? 'blue.500' : 'transparent'}
+                            bg={active ? 'teal.700' : 'transparent'}
                             color={active ? 'white' : 'gray.800'}
                             _hover={{
-                              bg: active ? 'blue.500' : 'gray.100',
+                              bg: active ? 'teal.700' : 'teal.50',
                             }}
                             onClick={() => {
                               const nextOrder = active && sortOrder === 'asc' ? 'desc' : 'asc'
@@ -174,7 +194,7 @@ function ActionItem({
       borderRadius="md"
       cursor="pointer"
       color="gray.900"
-      _hover={{ bg: 'gray.100' }}
+      _hover={{ bg: 'teal.50' }}
       onClick={onClick}
     >
       <Icon size={16} />

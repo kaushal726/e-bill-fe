@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import {
   Dialog,
   Portal,
@@ -252,7 +252,7 @@ export default function BillModal({ open, onClose, defaultValues }: BillDialogPr
 
             <Dialog.Footer gap={3} justifyContent="flex-end">
               <Dialog.ActionTrigger asChild>
-                <Button variant="outline" width="50%" color="gray.700" borderColor="gray.300">
+                <Button variant="subtle" width="50%" color="gray.700" borderColor="gray.300">
                   Cancel
                 </Button>
               </Dialog.ActionTrigger>

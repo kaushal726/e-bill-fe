@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import {
   Dialog,
   Portal,
@@ -36,7 +36,7 @@ const unitCollection = createListCollection({
 const discountTypeCollection = createListCollection({
   items: [
     { label: 'Percentage (%)', value: 'percentage' },
-    { label: 'Absolute (₹)', value: 'absolute' },
+    { label: 'Absolute (â‚¹)', value: 'absolute' },
   ],
 })
 
@@ -535,7 +535,7 @@ export default function ProductDialog({
             >
               <Dialog.ActionTrigger asChild>
                 <Button
-                  variant="outline"
+                  variant="subtle"
                   minW="120px"
                   width={{ base: '100%', md: '50%' }}
                   color="black"

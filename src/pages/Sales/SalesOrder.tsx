@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react'
 import { TableActionsPopover } from '@/components/popovers/TableActionsPopover'
 import { CommonTable } from '@/components/common/CommonTable'
 import { FilterSelect } from '@/components/common/FilterSelect'
+import { FilterDrawer } from '@/components/common/FilterDrawer'
 import { useDispatch } from 'react-redux'
 import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 
@@ -83,6 +84,8 @@ const SalesOrder = () => {
   const [page, setPage] = useState(1)
   const [value, setValue] = useState<string[]>(['all'])
 
+  const activeFilterCount = !value.includes('all') ? 1 : 0
+
   // Fake pagination
   const limit = 10
   const totalPages = 1
@@ -90,12 +93,28 @@ const SalesOrder = () => {
   return (
     <Flex bg="gray.100" width="100%" minH="100%" flexDir="column" px={6}>
       <Flex justify="space-between" align="center" mt={8} w="100%">
-        <FilterSelect
-          options={salesOrderFilters}
-          value={value}
-          defaultValue={['all']}
-          placeholder="All Orders"
-          onChange={setValue}
+        <FilterDrawer
+          title="Sales Order Filters"
+          subtitle="Filter sales orders by order status."
+          activeCount={activeFilterCount}
+          onClearAll={() => setValue(['all'])}
+          sections={[
+            {
+              key: 'status',
+              title: 'Order Status',
+              description: 'Pending, completed, or shipped sales orders.',
+              content: (
+                <FilterSelect
+                  options={salesOrderFilters}
+                  value={value}
+                  defaultValue={['all']}
+                  placeholder="All Orders"
+                  width="100%"
+                  onChange={setValue}
+                />
+              ),
+            },
+          ]}
         />
 
         <HStack gap={2}>

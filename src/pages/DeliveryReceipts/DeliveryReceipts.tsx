@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react'
 import { TableActionsPopover } from '@/components/popovers/TableActionsPopover'
 import { CommonTable } from '@/components/common/CommonTable'
 import { FilterSelect } from '@/components/common/FilterSelect'
+import { FilterDrawer } from '@/components/common/FilterDrawer'
 import { FaEdit, FaTrash } from '@/components/icons/index.ts'
 import type { SortKey } from '@/components/popovers/TableActionsPopover'
 
@@ -95,6 +96,8 @@ function DeliveryReceipts() {
     { label: 'Cancelled', value: 'cancelled' },
   ]
 
+  const activeFilterCount = !value.includes('all') && value.length > 0 ? 1 : 0
+
   // Pagination (fake for now)
   const limit = 20
   const totalPages = 1
@@ -112,12 +115,28 @@ function DeliveryReceipts() {
     <>
       <Flex bg="gray.100" width="100%" minH="100%" flexDir="column" px={6}>
         <Flex justify="space-between" align="center" mt={8} w="100%">
-          <FilterSelect
-            options={receiptFilters}
-            value={value}
-            defaultValue={['all']}
-            placeholder="All receipts"
-            onChange={setValue}
+          <FilterDrawer
+            title="Delivery Receipt Filters"
+            subtitle="Filter delivery receipts by delivery status."
+            activeCount={activeFilterCount}
+            onClearAll={() => setValue(['all'])}
+            sections={[
+              {
+                key: 'status',
+                title: 'Delivery Status',
+                description: 'Delivered, pending, or cancelled receipts.',
+                content: (
+                  <FilterSelect
+                    options={receiptFilters}
+                    value={value}
+                    defaultValue={['all']}
+                    placeholder="All receipts"
+                    width="100%"
+                    onChange={setValue}
+                  />
+                ),
+              },
+            ]}
           />
 
           <HStack gap={2}>

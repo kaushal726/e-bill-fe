@@ -1,14 +1,16 @@
-import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack, Badge } from '@chakra-ui/react'
-import { useEffect, useMemo, useState } from 'react'
+﻿import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack, Badge, Input } from '@chakra-ui/react'
+import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { Plus } from 'lucide-react'
 
 import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 import { CommonTable } from '@/components/common/CommonTable'
 import { ExpandableSearch } from '@/components/common/ExpandableSearch'
+import { DateInputWithIcon } from '@/components/common/DateInputWithIcon'
+import { FilterDrawer } from '@/components/common/FilterDrawer'
 import PaymentModal from '@/components/modals/PaymentModal'
 
-import { usePayment, usePaymentSummary } from '@/hooks/usePayment'
+import { usePayment, usePaymentDues, usePaymentSummary } from '@/hooks/usePayment'
 
 const paymentTypeColor = {
   supplier: 'orange',
@@ -38,14 +40,34 @@ const Payments = () => {
   const [defaultType, setDefaultType] = useState<'supplier' | 'customer'>('supplier')
 
   const [typeFilter, setTypeFilter] = useState<'all' | 'supplier' | 'customer'>('all')
+  const [modeFilter, setModeFilter] = useState('')
+  const [partyId, setPartyId] = useState('')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
+  const [minAmount, setMinAmount] = useState('')
+  const [maxAmount, setMaxAmount] = useState('')
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState(search)
   const [page, setPage] = useState(1)
   const limit = 20
 
-  const { data: paymentResponse, isLoading } = usePayment()
+  const { data: paymentResponse, isLoading } = usePayment({
+    page,
+    limit,
+    search: debouncedSearch || undefined,
+    paidToType: typeFilter === 'all' ? undefined : typeFilter,
+    paymentMode: (modeFilter as any) || undefined,
+    partyId: partyId || undefined,
+    fromDate: fromDate || undefined,
+    toDate: toDate || undefined,
+    minAmount: minAmount ? Number(minAmount) : undefined,
+    maxAmount: maxAmount ? Number(maxAmount) : undefined,
+    sortBy: 'createdAt',
+    sortOrder: 'desc',
+  })
   const paymentData = paymentResponse?.payments || []
   const { data: paymentSummary } = usePaymentSummary()
+  const { data: duesData } = usePaymentDues()
 
   useEffect(() => {
     const id = setTimeout(() => setDebouncedSearch(search), 350)
@@ -67,51 +89,43 @@ const Payments = () => {
 
   useEffect(() => {
     setPage(1)
-  }, [debouncedSearch])
+  }, [debouncedSearch, typeFilter, modeFilter, partyId, fromDate, toDate, minAmount, maxAmount])
 
-  const filteredPayments = useMemo(() => {
-    const keyword = debouncedSearch.trim().toLowerCase()
+  const payments = paymentData
 
-    return paymentData.filter((p) => {
-      if (typeFilter !== 'all' && p.paidToType !== typeFilter) return false
-
-      if (!keyword) return true
-
-      const invoiceText = getInvoiceFromPayment(p)
-
-      const haystack = [
-        p.paidToType,
-        p.supplierId?.name || '',
-        p.customerId?.name || '',
-        p.partyName || '',
-        invoiceText,
-        p.paymentMode,
-        p.note || '',
-      ]
-        .join(' ')
-        .toLowerCase()
-
-      return haystack.includes(keyword)
-    })
-  }, [paymentData, debouncedSearch, typeFilter])
-
-  const payments = useMemo(() => {
-    const start = (page - 1) * limit
-    return filteredPayments.slice(start, start + limit)
-  }, [filteredPayments, page])
-
-  const pagination = {
-    currentPage: page,
-    totalPages: Math.max(1, Math.ceil(filteredPayments.length / limit)),
-    hasNextPage: page * limit < filteredPayments.length,
-    hasPreviousPage: page > 1,
+  const pagination = paymentResponse?.pagination || {
+    currentPage: 1,
+    totalPages: 1,
+    totalPayments: paymentData.length,
+    hasNextPage: false,
+    hasPrevPage: false,
   }
 
   const summary = {
-    total: filteredPayments.length,
+    total: pagination.totalPayments || paymentData.length,
     showing: payments.length,
     activePage: pagination.currentPage,
     totalPages: pagination.totalPages,
+  }
+
+  const activeFilterCount = [
+    typeFilter !== 'all',
+    Boolean(modeFilter),
+    Boolean(partyId),
+    Boolean(fromDate),
+    Boolean(toDate),
+    Boolean(minAmount),
+    Boolean(maxAmount),
+  ].filter(Boolean).length
+
+  const clearFilters = () => {
+    setTypeFilter('all')
+    setModeFilter('')
+    setPartyId('')
+    setFromDate('')
+    setToDate('')
+    setMinAmount('')
+    setMaxAmount('')
   }
 
   const paymentColumns = [
@@ -187,8 +201,15 @@ const Payments = () => {
         py={{ base: 4, md: 5 }}
         overflowY="auto"
       >
-        <SimpleGrid columns={{ base: 2, md: 4 }} gap={3}>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+        <SimpleGrid minChildWidth={{ base: '140px', md: '180px' }} gap={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Total Payments
             </Text>
@@ -196,7 +217,14 @@ const Payments = () => {
               {paymentSummary?.totalPayments ?? summary.total}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Total Amount
             </Text>
@@ -208,7 +236,14 @@ const Payments = () => {
               }).format(Number(paymentSummary?.totalAmount ?? 0))}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               From Customers
             </Text>
@@ -220,7 +255,14 @@ const Payments = () => {
               }).format(Number(paymentSummary?.totalFromCustomers ?? 0))}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               To Suppliers
             </Text>
@@ -235,7 +277,14 @@ const Payments = () => {
         </SimpleGrid>
 
         <SimpleGrid columns={{ base: 1, md: 3 }} gap={3} mt={3}>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               This Month
             </Text>
@@ -247,7 +296,14 @@ const Payments = () => {
               }).format(Number(paymentSummary?.thisMonthAmount ?? 0))}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Customer Payments Count
             </Text>
@@ -255,7 +311,14 @@ const Payments = () => {
               {paymentSummary?.customerPaymentsCount ?? 0}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Supplier Payments Count
             </Text>
@@ -285,7 +348,14 @@ const Payments = () => {
             </Text>
           </Box>
 
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Walk-in Supplier Payments
             </Text>
@@ -323,23 +393,139 @@ const Payments = () => {
               placeholder="Search by invoice, party, mode, note..."
               expandedWidth="300px"
             />
-
-            <HStack bg="white" border="1px solid" borderColor="gray.100" borderRadius="10px" p={1}>
-              {(['all', 'supplier', 'customer'] as const).map((t) => (
-                <Button
-                  key={t}
-                  size="sm"
-                  variant={typeFilter === t ? 'solid' : 'ghost'}
-                  bg={typeFilter === t ? 'gray.900' : 'transparent'}
-                  color={typeFilter === t ? 'white' : 'gray.700'}
-                  _hover={{ bg: typeFilter === t ? 'gray.900' : 'gray.100' }}
-                  onClick={() => setTypeFilter(t)}
-                  textTransform="capitalize"
-                >
-                  {t === 'all' ? 'All' : t === 'supplier' ? 'Supplier' : 'Customer'}
-                </Button>
-              ))}
-            </HStack>
+            <FilterDrawer
+              title="Payment Filters"
+              subtitle="Filter by direction, payment mode, party, date, and amount range."
+              activeCount={activeFilterCount}
+              onClearAll={clearFilters}
+              sections={[
+                {
+                  key: 'type',
+                  title: 'Payment Direction',
+                  description: 'Supplier means money paid out. Customer means money received.',
+                  content: (
+                    <HStack
+                      bg="white"
+                      border="1px solid"
+                      borderColor="gray.100"
+                      borderRadius="10px"
+                      p={1}
+                    >
+                      {(['all', 'supplier', 'customer'] as const).map((t) => (
+                        <Button
+                          key={t}
+                          size="sm"
+                          variant={typeFilter === t ? 'solid' : 'ghost'}
+                          bg={typeFilter === t ? 'gray.900' : 'transparent'}
+                          color={typeFilter === t ? 'white' : 'gray.700'}
+                          _hover={{ bg: typeFilter === t ? 'gray.900' : 'gray.100' }}
+                          onClick={() => setTypeFilter(t)}
+                          textTransform="capitalize"
+                        >
+                          {t === 'all' ? 'All' : t === 'supplier' ? 'Supplier' : 'Customer'}
+                        </Button>
+                      ))}
+                    </HStack>
+                  ),
+                },
+                {
+                  key: 'mode-party',
+                  title: 'Mode and Party',
+                  description:
+                    'Mode filters payment channel. Party filters a specific supplier/customer.',
+                  content: (
+                    <VStack align="stretch" gap={2}>
+                      <Box>
+                        <select
+                          value={modeFilter}
+                          onChange={(e) => setModeFilter(e.target.value)}
+                          style={{
+                            width: '100%',
+                            height: '40px',
+                            border: '1px solid #CBD5E0',
+                            borderRadius: '12px',
+                            padding: '0 12px',
+                            background: 'white',
+                          }}
+                        >
+                          <option value="">All modes</option>
+                          <option value="cash">Cash</option>
+                          <option value="upi">UPI</option>
+                          <option value="bank">Bank</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </Box>
+                      <Box>
+                        <select
+                          value={partyId}
+                          onChange={(e) => setPartyId(e.target.value)}
+                          style={{
+                            width: '100%',
+                            height: '40px',
+                            border: '1px solid #CBD5E0',
+                            borderRadius: '12px',
+                            padding: '0 12px',
+                            background: 'white',
+                          }}
+                        >
+                          <option value="">All parties</option>
+                          {[...(duesData?.customers || []), ...(duesData?.suppliers || [])]
+                            .filter(
+                              (p, i, arr) =>
+                                p.partyId && arr.findIndex((x) => x.partyId === p.partyId) === i,
+                            )
+                            .map((party: any) => (
+                              <option key={party.partyId} value={party.partyId}>
+                                {party.partyName}
+                              </option>
+                            ))}
+                        </select>
+                      </Box>
+                    </VStack>
+                  ),
+                },
+                {
+                  key: 'date',
+                  title: 'Date Range',
+                  description: 'From and To apply to payment date/created date range.',
+                  content: (
+                    <VStack align="stretch" gap={2}>
+                      <DateInputWithIcon value={fromDate} onChange={setFromDate} />
+                      <DateInputWithIcon value={toDate} onChange={setToDate} />
+                    </VStack>
+                  ),
+                },
+                {
+                  key: 'amount',
+                  title: 'Amount Range',
+                  description: 'Min/Max filters payment amount values.',
+                  content: (
+                    <HStack>
+                      <Input
+                        value={minAmount}
+                        onChange={(e) => setMinAmount(e.target.value)}
+                        placeholder="Min amount"
+                        type="number"
+                        bg="white"
+                        borderColor="gray.200"
+                        borderRadius="12px"
+                        h="40px"
+                      />
+                      <Input
+                        value={maxAmount}
+                        onChange={(e) => setMaxAmount(e.target.value)}
+                        placeholder="Max amount"
+                        type="number"
+                        bg="white"
+                        borderColor="gray.200"
+                        borderRadius="12px"
+                        h="40px"
+                      />
+                    </HStack>
+                  ),
+                },
+              ]}
+            />
           </HStack>
 
           <HStack gap={2}>
@@ -422,7 +608,7 @@ const Payments = () => {
               border="1px solid"
               borderColor="gray.200"
               _hover={{ bg: 'gray.50' }}
-              disabled={!pagination.hasPreviousPage}
+              disabled={!pagination.hasPrevPage}
             >
               Previous
             </Button>
@@ -432,11 +618,11 @@ const Payments = () => {
               return (
                 <Button
                   key={pg}
-                  bg={pg === pagination.currentPage ? 'gray.900' : 'white'}
-                  color={pg === pagination.currentPage ? 'white' : 'gray.800'}
+                  bg={pg === pagination.currentPage ? 'teal.700' : 'white'}
+                  color={pg === pagination.currentPage ? 'white' : 'gray.700'}
                   border="1px solid"
-                  borderColor={pg === pagination.currentPage ? 'gray.900' : 'gray.200'}
-                  _hover={{ bg: pg === pagination.currentPage ? 'gray.900' : 'gray.100' }}
+                  borderColor={pg === pagination.currentPage ? 'teal.700' : 'teal.100'}
+                  _hover={{ bg: pg === pagination.currentPage ? 'teal.700' : 'teal.50' }}
                   onClick={() => setPage(pg)}
                 >
                   {pg}
@@ -457,7 +643,7 @@ const Payments = () => {
           </HStack>
 
           <Text fontSize="xs" color="gray.600">
-            Showing {payments.length} of {filteredPayments.length} payments
+            Showing {payments.length} of {summary.total} payments
           </Text>
         </VStack>
       </Flex>

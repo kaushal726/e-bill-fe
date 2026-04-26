@@ -7,6 +7,7 @@ import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 import { CommonTable } from '@/components/common/CommonTable'
 import { TableActionsPopover } from '@/components/popovers/TableActionsPopover'
 import { FilterSelect } from '@/components/common/FilterSelect'
+import { FilterDrawer } from '@/components/common/FilterDrawer'
 import type { SortKey } from '@/components/popovers/TableActionsPopover'
 
 /* ------------------ Fake Purchase Received Data ------------------ */
@@ -144,18 +145,36 @@ const PurchaseReceived = () => {
     { label: 'Partial', value: 'partial' },
   ]
 
+  const activeFilterCount = !filter.includes('all') ? 1 : 0
+
   const totalPages = 1
 
   return (
     <Flex bg="gray.100" width="100%" minH="100%" flexDir="column" px={6}>
       {/* Header Row */}
       <Flex justify="space-between" align="center" mt={8}>
-        <FilterSelect
-          options={purchaseReceivedFilters}
-          value={filter}
-          defaultValue={['all']}
-          placeholder="All received"
-          onChange={setFilter}
+        <FilterDrawer
+          title="Purchase Received Filters"
+          subtitle="Filter GRN/received records by completion status."
+          activeCount={activeFilterCount}
+          onClearAll={() => setFilter(['all'])}
+          sections={[
+            {
+              key: 'status',
+              title: 'Receive Status',
+              description: 'Completed or partial received entries.',
+              content: (
+                <FilterSelect
+                  options={purchaseReceivedFilters}
+                  value={filter}
+                  defaultValue={['all']}
+                  placeholder="All received"
+                  width="100%"
+                  onChange={setFilter}
+                />
+              ),
+            },
+          ]}
         />
 
         <HStack gap={2}>

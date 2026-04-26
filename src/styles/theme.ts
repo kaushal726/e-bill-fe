@@ -8,6 +8,19 @@ const config = defineConfig({
       color: 'gray.800',
       background: '#edf1f5',
     },
+    'button, [data-scope="button"][data-part="root"]': {
+      transition: 'none !important',
+      transform: 'none !important',
+      boxShadow: 'none !important',
+      filter: 'none !important',
+    },
+    'button:hover, [role="button"]:hover, [data-scope="button"][data-part="root"]:hover': {
+      transition: 'none !important',
+      transform: 'none !important',
+      boxShadow: 'none !important',
+      filter: 'none !important',
+      opacity: '1 !important',
+    },
     '[role="dialog"] button': {
       transition: 'none !important',
       transform: 'none !important',

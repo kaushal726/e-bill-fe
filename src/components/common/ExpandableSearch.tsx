@@ -22,21 +22,25 @@ export const ExpandableSearch = ({
       role="group"
       display="flex"
       alignItems="center"
-      w={{ base: '32px', md: expandedWidth }}
+      w={{ base: '100%', md: expandedWidth }}
       h={height}
       maxW={expandedWidth}
       border="1px solid"
-      borderColor="gray.300"
-      borderRadius="6px"
-      bg="white"
-      shadow="lighterGray"
+      borderColor="teal.700"
+      borderRadius="12px"
+      bg="rgba(255,255,255,0.98)"
+      shadow="0 6px 18px rgba(13, 116, 123, 0.16)"
       overflow="hidden"
-      _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)' }}
+      transition="border-color 0.2s ease"
+      _focusWithin={{
+        borderColor: 'teal.600',
+        boxShadow: '0 0 0 2px rgba(13, 116, 123, 0.18)',
+      }}
     >
       <Box
         flexShrink={0}
-        px="8px"
-        color="gray.500"
+        px="10px"
+        color="teal.700"
         display="flex"
         alignItems="center"
         justifyContent="center"
@@ -49,10 +53,12 @@ export const ExpandableSearch = ({
         onChange={onChange}
         placeholder={placeholder}
         size="sm"
-        h="32px"
+        h="36px"
         border="none"
-        outline={'none'}
+        outline="none"
         px="0"
+        color="gray.800"
+        _placeholder={{ color: 'gray.500' }}
         _focus={{ boxShadow: 'none' }}
       />
     </Box>

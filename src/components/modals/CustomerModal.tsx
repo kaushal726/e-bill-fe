@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Dialog, Portal, Button, Input, Field, useMediaQuery, SimpleGrid } from '@chakra-ui/react'
 import { useCustomerActions } from '@/hooks/useCustomerActions'
 import { X } from 'lucide-react'
@@ -209,7 +209,7 @@ export default function CustomerDialog({
             >
               <Dialog.ActionTrigger asChild>
                 <Button
-                  variant="outline"
+                  variant="subtle"
                   minW="120px"
                   width={{ base: '100%', md: '50%' }}
                   color="black"

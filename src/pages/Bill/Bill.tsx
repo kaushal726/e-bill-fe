@@ -7,6 +7,7 @@ import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 import { CommonTable } from '@/components/common/CommonTable'
 import { TableActionsPopover } from '@/components/popovers/TableActionsPopover'
 import { FilterSelect } from '@/components/common/FilterSelect'
+import { FilterDrawer } from '@/components/common/FilterDrawer'
 import BillModal from '@/components/modals/BillModal'
 import { useBills, type BillRecord } from '@/hooks/useBill'
 import { useBillActions } from '@/hooks/useBillActions'
@@ -117,6 +118,8 @@ const Bill = () => {
     { label: 'Overdue', value: 'overdue' },
   ]
 
+  const activeFilterCount = !filter.includes('all') ? 1 : 0
+
   const handleDeleteBill = (billId: string) => {
     deleteBill.mutate(billId)
   }
@@ -135,12 +138,28 @@ const Bill = () => {
     <Flex bg="gray.100" width="100%" minH="100%" flexDir="column" px={6}>
       {/* Header Row */}
       <Flex justify="space-between" align="center" mt={8}>
-        <FilterSelect
-          options={billFilters}
-          value={filter}
-          defaultValue={['all']}
-          placeholder="All bills"
-          onChange={setFilter}
+        <FilterDrawer
+          title="Bill Filters"
+          subtitle="Filter bill records by payment status."
+          activeCount={activeFilterCount}
+          onClearAll={() => setFilter(['all'])}
+          sections={[
+            {
+              key: 'status',
+              title: 'Bill Status',
+              description: 'Show only paid, unpaid, or overdue bills.',
+              content: (
+                <FilterSelect
+                  options={billFilters}
+                  value={filter}
+                  defaultValue={['all']}
+                  placeholder="All bills"
+                  width="100%"
+                  onChange={setFilter}
+                />
+              ),
+            },
+          ]}
         />
 
         <HStack gap={2}>

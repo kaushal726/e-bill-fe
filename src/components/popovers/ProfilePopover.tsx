@@ -43,26 +43,47 @@ export const ProfilePopover = ({ trigger }: { trigger: React.ReactNode }) => {
       <Portal>
         <Popover.Positioner>
           <Popover.Content
-            w="300px"
+            w="320px"
             bg="white"
             borderWidth="1px"
-            borderColor="gray.200"
+            borderColor="gray.100"
             borderRadius="16px"
-            shadow={'md'}
+            shadow={'lg'}
             overflow="hidden"
             p={0}
           >
             <Box p={4}>
               <HStack gap={3} align="start">
-                <Avatar.Root size="md">
+                <Avatar.Root
+                  size="md"
+                  bg="orange.50"
+                  color="orange.700"
+                  borderWidth="2px"
+                  borderColor="orange.100"
+                >
                   <Avatar.Fallback>{profile?.firstName?.[0] ?? 'U'}</Avatar.Fallback>
                 </Avatar.Root>
                 <Box flex="1">
-                  <Text fontWeight="700" fontSize="sm">
+                  <Text fontWeight="800" fontSize="sm" color="gray.900">
                     {profile?.firstName} {profile?.lastName}
                   </Text>
-                  <Text fontSize="xs" color="gray.500" mt={1}>
+                  <Text fontSize="xs" color="gray.500" mt={0.5}>
                     {profile?.emailId}
+                  </Text>
+                  <Text
+                    mt={1.5}
+                    display="inline-flex"
+                    px={2}
+                    py={0.5}
+                    borderRadius="full"
+                    fontSize="10px"
+                    letterSpacing="0.08em"
+                    textTransform="uppercase"
+                    bg="teal.50"
+                    color="teal.700"
+                    fontWeight="700"
+                  >
+                    Workspace Admin
                   </Text>
                 </Box>
               </HStack>
@@ -70,32 +91,32 @@ export const ProfilePopover = ({ trigger }: { trigger: React.ReactNode }) => {
 
             <Separator borderColor="gray.200" />
 
-            <Box p={2}>
-              <VStack align="stretch" gap={0}>
+            <Box p={2.5}>
+              <VStack align="stretch" gap={2}>
                 <Button
-                  variant="ghost"
+                  variant="subtle"
                   justifyContent="flex-start"
                   fontSize="sm"
-                  fontWeight="500"
+                  fontWeight="700"
                   color="gray.800"
-                  h="36px"
-                  px={3}
-                  rounded="md"
+                  h="42px"
+                  px={3.5}
+                  rounded="lg"
                   onClick={() => navigate('/profile')}
-                  _hover={{ bg: 'gray.100' }}
+                  bg="gray.50"
                 >
                   My Account
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant="subtle"
                   justifyContent="flex-start"
                   fontSize="sm"
-                  fontWeight="500"
+                  fontWeight="700"
                   color="red.600"
-                  h="36px"
-                  px={3}
-                  rounded="md"
-                  _hover={{ bg: 'red.50' }}
+                  h="42px"
+                  px={3.5}
+                  rounded="lg"
+                  bg="red.50"
                   onClick={handleLogout}
                 >
                   Sign Out

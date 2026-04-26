@@ -1,7 +1,6 @@
 import { API } from '@/api/api'
 import API_ENDPOINTS from '@/api/apiEndpoints'
 import { useQuery } from '@tanstack/react-query'
-import { isFrontendPagination } from '@/utils/isFrontendPagination'
 
 export type ProductQueryParams = {
   page?: number
@@ -9,33 +8,28 @@ export type ProductQueryParams = {
   search?: string
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
+  categoryId?: string
+  supplierId?: string
+  lowStock?: boolean
+  minStock?: number
+  maxStock?: number
+  minPrice?: number
+  maxPrice?: number
+  discountType?: 'percentage' | 'amount'
+  gstInclusive?: 'true' | 'false'
+  fromDate?: string
+  toDate?: string
 }
 
 export const getProducts = async (params: ProductQueryParams = {}) => {
-  const frontend = isFrontendPagination(params.sortBy, params.sortOrder)
-
-  const endpoint = frontend ? API_ENDPOINTS.PRODUCTS.SEARCH : API_ENDPOINTS.PRODUCTS.BASE
-
-  const res = await API.get(endpoint, { params })
+  const res = await API.get(API_ENDPOINTS.PRODUCTS.SEARCH, { params })
 
   return res.data?.data || null
 }
 
 export const useProducts = (params: ProductQueryParams = {}) => {
-  const frontend = isFrontendPagination(params.sortBy, params.sortOrder)
-
   return useQuery({
-    queryKey: [
-      'products',
-      {
-        search: params.search,
-        sortBy: params.sortBy,
-        sortOrder: params.sortOrder,
-        mode: frontend ? 'frontend' : 'backend',
-        page: frontend ? undefined : params.page,
-        limit: frontend ? undefined : params.limit,
-      },
-    ],
+    queryKey: ['products', params],
     queryFn: () => getProducts(params),
 
     retry: false,

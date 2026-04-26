@@ -7,6 +7,7 @@ import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 import { CommonTable } from '@/components/common/CommonTable'
 import { TableActionsPopover } from '@/components/popovers/TableActionsPopover'
 import { FilterSelect } from '@/components/common/FilterSelect'
+import { FilterDrawer } from '@/components/common/FilterDrawer'
 import type { SortKey } from '@/components/popovers/TableActionsPopover'
 
 /* ------------------ Fake Credit Data ------------------ */
@@ -162,18 +163,36 @@ const Credits = () => {
     { label: 'Applied', value: 'applied' },
   ]
 
+  const activeFilterCount = !filter.includes('all') ? 1 : 0
+
   const totalPages = 1
 
   return (
     <Flex bg="gray.100" width="100%" minH="100%" flexDir="column" px={6}>
       {/* Header Row */}
       <Flex justify="space-between" align="center" mt={8}>
-        <FilterSelect
-          options={creditFilters}
-          value={filter}
-          defaultValue={['all']}
-          placeholder="All credits"
-          onChange={setFilter}
+        <FilterDrawer
+          title="Credit Filters"
+          subtitle="Filter credits by status."
+          activeCount={activeFilterCount}
+          onClearAll={() => setFilter(['all'])}
+          sections={[
+            {
+              key: 'status',
+              title: 'Credit Status',
+              description: 'Open, partially applied, or fully applied credits.',
+              content: (
+                <FilterSelect
+                  options={creditFilters}
+                  value={filter}
+                  defaultValue={['all']}
+                  placeholder="All credits"
+                  width="100%"
+                  onChange={setFilter}
+                />
+              ),
+            },
+          ]}
         />
 
         <HStack gap={2}>

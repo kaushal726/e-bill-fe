@@ -1,4 +1,4 @@
-import { Box, Button, Container, Heading, Stack, Text, HStack, VStack } from '@chakra-ui/react'
+﻿import { Box, Button, Container, Heading, Stack, Text, HStack, VStack } from '@chakra-ui/react'
 import { motion } from 'framer-motion'
 import { ArrowRight, Sparkles, Zap } from 'lucide-react'
 import { Link as RouterLink } from 'react-router-dom'
@@ -164,7 +164,7 @@ export function CTASection() {
                   size="xl"
                   px={8}
                   py={7}
-                  variant="outline"
+                  variant="subtle"
                   borderWidth="2px"
                   borderColor="white"
                   color="white"

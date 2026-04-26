@@ -121,6 +121,7 @@ export const API_ENDPOINTS = {
     STAFF: '/attendance/staff',
     DATE: '/attendance/date',
     WEEKLY_SALARY: '/attendance/weekly-salary',
+    MONTHLY_SALARY: '/attendance/monthly-salary',
   },
 
   BILL: {

@@ -47,6 +47,29 @@ export type PaymentListResponse = {
   totalWalkInSupplierPaid: number
   walkInSupplierDueAmount: number
   walkInSupplierDueBreakdown: WalkInSupplierDueRow[]
+  pagination?: {
+    currentPage: number
+    totalPages: number
+    totalPayments: number
+    limit: number
+    hasNextPage: boolean
+    hasPrevPage: boolean
+  }
+}
+
+export type PaymentQueryParams = {
+  search?: string
+  paidToType?: 'supplier' | 'customer'
+  paymentMode?: 'cash' | 'upi' | 'bank' | 'other'
+  partyId?: string
+  fromDate?: string
+  toDate?: string
+  minAmount?: number
+  maxAmount?: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  page?: number
+  limit?: number
 }
 
 const EMPTY_PAYMENT_LIST: PaymentListResponse = {
@@ -56,10 +79,18 @@ const EMPTY_PAYMENT_LIST: PaymentListResponse = {
   totalWalkInSupplierPaid: 0,
   walkInSupplierDueAmount: 0,
   walkInSupplierDueBreakdown: [],
+  pagination: {
+    currentPage: 1,
+    totalPages: 1,
+    totalPayments: 0,
+    limit: 20,
+    hasNextPage: false,
+    hasPrevPage: false,
+  },
 }
 
-const getPayments = async (): Promise<PaymentListResponse> => {
-  const res = await API.get(API_ENDPOINTS.PAYMENT.BASE)
+const getPayments = async (params: PaymentQueryParams = {}): Promise<PaymentListResponse> => {
+  const res = await API.get(API_ENDPOINTS.PAYMENT.BASE, { params })
   const payload = res.data?.data || res.data || {}
 
   if (Array.isArray(payload)) {
@@ -77,6 +108,14 @@ const getPayments = async (): Promise<PaymentListResponse> => {
       totalWalkInSupplierPaid: Number(payload.totalWalkInSupplierPaid || 0),
       walkInSupplierDueAmount: Number(payload.walkInSupplierDueAmount || 0),
       walkInSupplierDueBreakdown: payload.walkInSupplierDueBreakdown || [],
+      pagination: {
+        currentPage: Number(payload?.pagination?.currentPage || params.page || 1),
+        totalPages: Number(payload?.pagination?.totalPages || 1),
+        totalPayments: Number(payload?.pagination?.totalPayments || payload?.payments?.length || 0),
+        limit: Number(payload?.pagination?.limit || params.limit || 20),
+        hasNextPage: Boolean(payload?.pagination?.hasNextPage),
+        hasPrevPage: Boolean(payload?.pagination?.hasPrevPage),
+      },
     }
   }
 
@@ -299,10 +338,10 @@ const getPaymentAnalytics = async (): Promise<PaymentAnalytics> => {
   }
 }
 
-export const usePayment = () => {
+export const usePayment = (params: PaymentQueryParams = {}) => {
   return useQuery({
-    queryKey: ['payments'],
-    queryFn: getPayments,
+    queryKey: ['payments', params],
+    queryFn: () => getPayments(params),
 
     retry: false,
   })

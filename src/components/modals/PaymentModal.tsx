@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import {
   Dialog,
   Portal,
@@ -101,7 +101,7 @@ export default function PaymentModal({
     () =>
       createListCollection({
         items: suppliers.map((s) => ({
-          label: `${s.name} — ₹${(s.pendingAmount ?? 0).toLocaleString('en-IN')} due`,
+          label: `${s.name}  â‚¹${(s.pendingAmount ?? 0).toLocaleString('en-IN')} due`,
           value: s._id,
         })),
       }),
@@ -407,7 +407,7 @@ export default function PaymentModal({
                       Pending due to supplier
                     </Text>
                     <Badge colorPalette="orange" fontSize="sm">
-                      ₹{(selectedSupplier.pendingAmount ?? 0).toLocaleString('en-IN')}
+                      â‚¹{(selectedSupplier.pendingAmount ?? 0).toLocaleString('en-IN')}
                     </Badge>
                   </HStack>
                 </Box>
@@ -428,7 +428,7 @@ export default function PaymentModal({
                       Customer balance
                     </Text>
                     <Badge colorPalette="blue" fontSize="sm">
-                      ₹{(selectedCustomer.balance ?? 0).toLocaleString('en-IN')}
+                      â‚¹{(selectedCustomer.balance ?? 0).toLocaleString('en-IN')}
                     </Badge>
                   </HStack>
                 </Box>
@@ -452,7 +452,7 @@ export default function PaymentModal({
                       colorPalette={paidToType === 'supplier' ? 'orange' : 'blue'}
                       fontSize="sm"
                     >
-                      ₹{Number(anonymousDue?.totalDue || 0).toLocaleString('en-IN')}
+                      â‚¹{Number(anonymousDue?.totalDue || 0).toLocaleString('en-IN')}
                     </Badge>
                   </HStack>
                 </Box>
@@ -461,7 +461,7 @@ export default function PaymentModal({
               {/* Amount */}
               <Field.Root mb={3}>
                 <Field.Label color="gray.700" fontWeight="600">
-                  Amount (₹)
+                  Amount (â‚¹)
                 </Field.Label>
                 <Input
                   type="number"
@@ -557,7 +557,7 @@ export default function PaymentModal({
             <Dialog.Footer gap={3} justifyContent="flex-end">
               <Dialog.ActionTrigger asChild>
                 <Button
-                  variant="outline"
+                  variant="subtle"
                   minW="120px"
                   width="50%"
                   color="gray.700"

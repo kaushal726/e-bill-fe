@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Dialog, Portal, Button, Input, Field, useMediaQuery, VStack } from '@chakra-ui/react'
 import { X } from 'lucide-react'
 import { useCategoryActions } from '@/hooks/useCategoryActions'
@@ -126,7 +126,7 @@ export default function CategoryModal({
             >
               <Dialog.ActionTrigger asChild>
                 <Button
-                  variant="outline"
+                  variant="subtle"
                   minW="120px"
                   width={{ base: '100%', md: '50%' }}
                   color="black"

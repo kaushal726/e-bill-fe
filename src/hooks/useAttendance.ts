@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { API } from '@/api/api'
 import { API_ENDPOINTS } from '@/api/apiEndpoints'
 
-export type AttendanceStatus = 'present' | 'absent' | 'leave'
+export type AttendanceStatus = 'present' | 'halfday' | 'absent' | 'leave'
 
 export type AttendanceRecord = {
   _id: string
@@ -13,6 +13,7 @@ export type AttendanceRecord = {
     role: string
     salaryPerWeek: number
     baseSalary: number
+    sundayPolicy?: 'regular' | 'paid_off' | 'halfday_paid_full'
   }
   date: string
   status: AttendanceStatus
@@ -25,9 +26,12 @@ export type WeeklySummaryEntry = {
   name: string
   mobileNumber: string
   role: string
+  sundayPolicy: 'regular' | 'paid_off' | 'halfday_paid_full'
   weeklyRate: number
+  monthlyRate?: number
   perDayRate: number
-  attendance: { present: number; absent: number; leave: number }
+  attendance: { present: number; halfday: number; absent: number; leave: number }
+  paidSundayDays: number
   payableDays: number
   payableAmount: number
 }
@@ -40,10 +44,45 @@ export type WeeklySummary = {
     totalWeeklyRate: number
     totalPayable: number
     totalPresentDays: number
+    totalHalfDays: number
+    totalPaidSundayDays: number
     totalAbsentDays: number
     totalLeaveDays: number
   }
   summary: WeeklySummaryEntry[]
+}
+
+export type MonthlySummaryEntry = {
+  staffId: string
+  name: string
+  mobileNumber: string
+  role: string
+  sundayPolicy: 'regular' | 'paid_off' | 'halfday_paid_full'
+  weeklyRate: number
+  monthlyRate: number
+  perDayRate: number
+  attendance: { present: number; halfday: number; absent: number; leave: number }
+  paidSundayDays: number
+  daysInMonth: number
+  payableDays: number
+  payableAmount: number
+}
+
+export type MonthlySummary = {
+  month: string
+  monthStart: string
+  monthEnd: string
+  totals: {
+    staffCount: number
+    totalMonthlyRate: number
+    totalPayable: number
+    totalPresentDays: number
+    totalHalfDays: number
+    totalPaidSundayDays: number
+    totalAbsentDays: number
+    totalLeaveDays: number
+  }
+  summary: MonthlySummaryEntry[]
 }
 
 export const useAttendanceByDate = (date: string) =>
@@ -62,6 +101,17 @@ export const useWeeklySalarySummary = (weekStart?: string) =>
     queryFn: async () => {
       const res = await API.get(API_ENDPOINTS.ATTENDANCE.WEEKLY_SALARY, {
         params: weekStart ? { weekStart } : {},
+      })
+      return res?.data?.data ?? null
+    },
+  })
+
+export const useMonthlySalarySummary = (month?: string) =>
+  useQuery<MonthlySummary | null>({
+    queryKey: ['attendance', 'monthly', month ?? 'current'],
+    queryFn: async () => {
+      const res = await API.get(API_ENDPOINTS.ATTENDANCE.MONTHLY_SALARY, {
+        params: month ? { month } : {},
       })
       return res?.data?.data ?? null
     },

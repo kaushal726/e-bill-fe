@@ -1,4 +1,4 @@
-import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack } from '@chakra-ui/react'
+﻿import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack, Input } from '@chakra-ui/react'
 
 import { FaEdit, FaTrash } from '@/components/icons'
 
@@ -16,8 +16,11 @@ import { CommonTable } from '@/components/common/CommonTable'
 import { useProductImport } from '@/hooks/useProductImport'
 import { useProductExport } from '@/hooks/useProductExport'
 import { useQueryClient } from '@tanstack/react-query'
-import { isFrontendPagination } from '@/utils/isFrontendPagination'
 import { ExpandableSearch } from '@/components/common/ExpandableSearch'
+import { DateInputWithIcon } from '@/components/common/DateInputWithIcon'
+import { FilterDrawer } from '@/components/common/FilterDrawer'
+import { useCategory } from '@/hooks/useCategory'
+import { useSupplier } from '@/hooks/useSupplier'
 
 function Products() {
   const [open, setOpen] = useState(false)
@@ -31,6 +34,17 @@ function Products() {
   const [debouncedSearch, setDebouncedSearch] = useState(search)
   const [sortBy, setSortBy] = useState<string>('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [categoryId, setCategoryId] = useState('')
+  const [supplierId, setSupplierId] = useState('')
+  const [discountType, setDiscountType] = useState('')
+  const [gstInclusive, setGstInclusive] = useState('')
+  const [minStock, setMinStock] = useState('')
+  const [maxStock, setMaxStock] = useState('')
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
+  const [lowStockOnly, setLowStockOnly] = useState(false)
 
   const { deleteProduct } = useProductActions()
   const importProducts = useProductImport()
@@ -42,44 +56,66 @@ function Products() {
   const [page, setPage] = useState(1)
   const limit = 20
 
-  const frontend = isFrontendPagination(sortBy, sortOrder)
-
   useEffect(() => {
     const id = setTimeout(() => setDebouncedSearch(search), 400)
     return () => clearTimeout(id)
   }, [search])
 
   const { data, isLoading } = useProducts({
+    page,
+    limit,
     search: debouncedSearch || undefined,
-    ...(frontend ? { sortBy, sortOrder } : { page, limit }),
+    sortBy,
+    sortOrder,
+    categoryId: categoryId || undefined,
+    supplierId: supplierId || undefined,
+    discountType: (discountType as any) || undefined,
+    gstInclusive: (gstInclusive as any) || undefined,
+    lowStock: lowStockOnly || undefined,
+    minStock: minStock ? Number(minStock) : undefined,
+    maxStock: maxStock ? Number(maxStock) : undefined,
+    minPrice: minPrice ? Number(minPrice) : undefined,
+    maxPrice: maxPrice ? Number(maxPrice) : undefined,
+    fromDate: fromDate || undefined,
+    toDate: toDate || undefined,
   })
+  const { data: categoryData } = useCategory({
+    page: 1,
+    limit: 200,
+    sortBy: 'name',
+    sortOrder: 'asc',
+  })
+  const { data: supplierData = [] } = useSupplier()
 
   const rawProducts = data?.products ?? []
+  const products = rawProducts
 
-  const products = useMemo(() => {
-    if (!frontend) return rawProducts
-
-    const start = (page - 1) * limit
-    return rawProducts.slice(start, start + limit)
-  }, [rawProducts, page, limit, frontend])
-
-  const pagination = frontend
-    ? {
-        currentPage: page,
-        totalPages: Math.max(1, Math.ceil(rawProducts.length / limit)),
-        hasNextPage: page * limit < rawProducts.length,
-        hasPreviousPage: page > 1,
-      }
-    : (data?.pagination ?? {
-        currentPage: 1,
-        totalPages: 1,
-        hasNextPage: false,
-        hasPreviousPage: false,
-      })
+  const pagination = data?.pagination ?? {
+    currentPage: 1,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false,
+    totalProducts: rawProducts.length,
+  }
 
   useEffect(() => {
     setPage(1)
-  }, [sortBy, sortOrder, search])
+  }, [
+    sortBy,
+    sortOrder,
+    search,
+    categoryId,
+    supplierId,
+    discountType,
+    gstInclusive,
+    minStock,
+    maxStock,
+    minPrice,
+    maxPrice,
+    fromDate,
+    toDate,
+    lowStockOnly,
+  ])
 
   const productColumns = [
     {
@@ -104,7 +140,7 @@ function Products() {
       key: 'category',
       header: 'Category',
       width: '170px',
-      render: (p: any) => p.categoryId?.name ?? '—',
+      render: (p: any) => p.categoryId?.name ?? '',
     },
     {
       key: 'supplier',
@@ -113,7 +149,7 @@ function Products() {
       render: (p: any) =>
         p.supplierId?.name
           ? `${p.supplierId.name}${p.supplierId.mobileNumber ? ` (${p.supplierId.mobileNumber})` : ''}`
-          : '—',
+          : '',
     },
 
     {
@@ -172,7 +208,7 @@ function Products() {
       key: 'discountType',
       header: 'Discount Type',
       width: '130px',
-      render: (p: any) => (p.discountType === 'percentage' ? '%' : '₹'),
+      render: (p: any) => (p.discountType === 'percentage' ? '%' : 'Rs'),
     },
     {
       key: 'discountValue',
@@ -259,7 +295,7 @@ function Products() {
   }
 
   const summary = {
-    total: rawProducts.length,
+    total: data?.pagination?.totalProducts ?? rawProducts.length,
     showing: products.length,
     activePage: pagination.currentPage,
     totalPages: pagination.totalPages,
@@ -267,6 +303,34 @@ function Products() {
 
   const activeSortLabel =
     PRODUCT_SORT_OPTIONS.find((option) => option.key === sortBy)?.label || 'Name'
+
+  const activeFilterCount = [
+    Boolean(categoryId),
+    Boolean(supplierId),
+    Boolean(discountType),
+    Boolean(gstInclusive),
+    Boolean(minStock),
+    Boolean(maxStock),
+    Boolean(minPrice),
+    Boolean(maxPrice),
+    Boolean(fromDate),
+    Boolean(toDate),
+    lowStockOnly,
+  ].filter(Boolean).length
+
+  const clearFilters = () => {
+    setCategoryId('')
+    setSupplierId('')
+    setDiscountType('')
+    setGstInclusive('')
+    setMinStock('')
+    setMaxStock('')
+    setMinPrice('')
+    setMaxPrice('')
+    setFromDate('')
+    setToDate('')
+    setLowStockOnly(false)
+  }
 
   return (
     <>
@@ -286,8 +350,15 @@ function Products() {
         px={{ base: 4, md: 6 }}
         py={{ base: 4, md: 5 }}
       >
-        <SimpleGrid columns={{ base: 2, md: 4 }} gap={3}>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+        <SimpleGrid minChildWidth={{ base: '140px', md: '180px' }} gap={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Total
             </Text>
@@ -295,7 +366,14 @@ function Products() {
               {summary.total}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Showing
             </Text>
@@ -303,7 +381,14 @@ function Products() {
               {summary.showing}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Page
             </Text>
@@ -311,7 +396,14 @@ function Products() {
               {summary.activePage}
             </Text>
           </Box>
-          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+          <Box
+            bg="linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)"
+            border="1px solid"
+            borderColor="teal.100"
+            borderRadius="14px"
+            p={2.5}
+            boxShadow="0 8px 20px rgba(13, 116, 123, 0.08)"
+          >
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
               Total Pages
             </Text>
@@ -348,14 +440,192 @@ function Products() {
             >
               Sorted by {activeSortLabel} ({sortOrder === 'asc' ? 'Ascending' : 'Descending'})
             </Text>
+            <FilterDrawer
+              title="Product Filters"
+              subtitle="Apply product, stock, pricing, tax, and date filters in one place."
+              activeCount={activeFilterCount}
+              onClearAll={clearFilters}
+              sections={[
+                {
+                  key: 'mapping',
+                  title: 'Category and Supplier',
+                  description: 'Filter products mapped to a specific category or supplier.',
+                  content: (
+                    <VStack align="stretch" gap={2}>
+                      <Box>
+                        <select
+                          value={categoryId}
+                          onChange={(e) => setCategoryId(e.target.value)}
+                          style={{
+                            width: '100%',
+                            height: '40px',
+                            border: '1px solid #CBD5E0',
+                            borderRadius: '12px',
+                            padding: '0 12px',
+                            background: 'white',
+                          }}
+                        >
+                          <option value="">All categories</option>
+                          {(categoryData?.categories || []).map((c: any) => (
+                            <option key={c._id} value={c._id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </Box>
+                      <Box>
+                        <select
+                          value={supplierId}
+                          onChange={(e) => setSupplierId(e.target.value)}
+                          style={{
+                            width: '100%',
+                            height: '40px',
+                            border: '1px solid #CBD5E0',
+                            borderRadius: '12px',
+                            padding: '0 12px',
+                            background: 'white',
+                          }}
+                        >
+                          <option value="">All suppliers</option>
+                          {supplierData.map((s: any) => (
+                            <option key={s._id} value={s._id}>
+                              {s.name}
+                            </option>
+                          ))}
+                        </select>
+                      </Box>
+                    </VStack>
+                  ),
+                },
+                {
+                  key: 'price-stock',
+                  title: 'Stock and Price Range',
+                  description:
+                    'Min/Max stock and Min/Max price filters apply numeric range checks.',
+                  content: (
+                    <VStack align="stretch" gap={2}>
+                      <HStack>
+                        <Input
+                          value={minStock}
+                          onChange={(e) => setMinStock(e.target.value)}
+                          placeholder="Min stock"
+                          type="number"
+                          bg="white"
+                          borderColor="gray.200"
+                          borderRadius="12px"
+                          h="40px"
+                        />
+                        <Input
+                          value={maxStock}
+                          onChange={(e) => setMaxStock(e.target.value)}
+                          placeholder="Max stock"
+                          type="number"
+                          bg="white"
+                          borderColor="gray.200"
+                          borderRadius="12px"
+                          h="40px"
+                        />
+                      </HStack>
+                      <HStack>
+                        <Input
+                          value={minPrice}
+                          onChange={(e) => setMinPrice(e.target.value)}
+                          placeholder="Min price"
+                          type="number"
+                          bg="white"
+                          borderColor="gray.200"
+                          borderRadius="12px"
+                          h="40px"
+                        />
+                        <Input
+                          value={maxPrice}
+                          onChange={(e) => setMaxPrice(e.target.value)}
+                          placeholder="Max price"
+                          type="number"
+                          bg="white"
+                          borderColor="gray.200"
+                          borderRadius="12px"
+                          h="40px"
+                        />
+                      </HStack>
+                    </VStack>
+                  ),
+                },
+                {
+                  key: 'gst-discount',
+                  title: 'Discount and GST Type',
+                  description: 'Choose discount type and GST mode to narrow matching products.',
+                  content: (
+                    <VStack align="stretch" gap={2}>
+                      <Box>
+                        <select
+                          value={discountType}
+                          onChange={(e) => setDiscountType(e.target.value)}
+                          style={{
+                            width: '100%',
+                            height: '40px',
+                            border: '1px solid #CBD5E0',
+                            borderRadius: '12px',
+                            padding: '0 12px',
+                            background: 'white',
+                          }}
+                        >
+                          <option value="">Discount</option>
+                          <option value="percentage">Percentage</option>
+                          <option value="amount">Amount</option>
+                        </select>
+                      </Box>
+                      <Box>
+                        <select
+                          value={gstInclusive}
+                          onChange={(e) => setGstInclusive(e.target.value)}
+                          style={{
+                            width: '100%',
+                            height: '40px',
+                            border: '1px solid #CBD5E0',
+                            borderRadius: '12px',
+                            padding: '0 12px',
+                            background: 'white',
+                          }}
+                        >
+                          <option value="">GST type</option>
+                          <option value="true">Inclusive</option>
+                          <option value="false">Exclusive</option>
+                        </select>
+                      </Box>
+                      <Button
+                        size="sm"
+                        bg={lowStockOnly ? 'orange.100' : 'white'}
+                        border="1px solid"
+                        borderColor={lowStockOnly ? 'orange.300' : 'gray.200'}
+                        onClick={() => setLowStockOnly((v) => !v)}
+                      >
+                        Low Stock Only
+                      </Button>
+                    </VStack>
+                  ),
+                },
+                {
+                  key: 'date',
+                  title: 'Created Date Range',
+                  description: 'From and To dates apply on product created date.',
+                  content: (
+                    <VStack align="stretch" gap={2}>
+                      <DateInputWithIcon value={fromDate} onChange={setFromDate} />
+                      <DateInputWithIcon value={toDate} onChange={setToDate} />
+                    </VStack>
+                  ),
+                },
+              ]}
+            />
           </HStack>
           <HStack gap={2}>
             <Button
-              bg="gray.950"
+              bg="teal.700"
               color="white"
               h="38px"
               px={4}
-              _hover={{ bg: 'gray.800' }}
+              _hover={{ bg: 'teal.800' }}
               onClick={() => {
                 setDialogMode('add')
                 setEditId(null)
@@ -372,7 +642,7 @@ function Products() {
             </Button>
 
             <Button
-              variant="outline"
+              variant="subtle"
               bg="white"
               color="black"
               borderColor="gray.300"
@@ -448,11 +718,11 @@ function Products() {
                 <Button
                   key={pg}
                   onClick={() => setPage(pg)}
-                  bg={pg === pagination.currentPage ? 'gray.900' : 'white'}
-                  color={pg === pagination.currentPage ? 'white' : 'gray.800'}
+                  bg={pg === pagination.currentPage ? 'teal.700' : 'white'}
+                  color={pg === pagination.currentPage ? 'white' : 'gray.700'}
                   border="1px solid"
-                  borderColor={pg === pagination.currentPage ? 'gray.900' : 'gray.200'}
-                  _hover={{ bg: pg === pagination.currentPage ? 'gray.900' : 'gray.100' }}
+                  borderColor={pg === pagination.currentPage ? 'teal.700' : 'teal.100'}
+                  _hover={{ bg: pg === pagination.currentPage ? 'teal.700' : 'teal.50' }}
                 >
                   {pg}
                 </Button>
@@ -472,7 +742,7 @@ function Products() {
           </HStack>
 
           <Text fontSize="xs" color="gray.600">
-            Showing {products.length} of {rawProducts.length} products
+            Showing {products.length} of {summary.total} products
           </Text>
         </VStack>
       </Flex>

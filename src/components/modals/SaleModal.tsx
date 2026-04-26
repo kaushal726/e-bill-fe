@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import {
   Dialog,
   Portal,
@@ -12,6 +12,7 @@ import {
   Text,
   Box,
   Tabs,
+  SimpleGrid,
 } from '@chakra-ui/react'
 import { createListCollection } from '@chakra-ui/react'
 import { Plus, Trash2, X } from 'lucide-react'
@@ -25,8 +26,26 @@ type SaleFormItem = {
   productId: string
   quantity: string
   price: string
-  discount: string
+  discountType: 'percentage' | 'absolute'
+  discountValue: string
+  gstPercentage: string
+  gstInclusive: 'exclusive' | 'inclusive'
 }
+
+type ExtraChargeFormItem = {
+  label: string
+  amount: string
+}
+
+const createEmptyItem = (): SaleFormItem => ({
+  productId: '',
+  quantity: '1',
+  price: '0',
+  discountType: 'percentage',
+  discountValue: '0',
+  gstPercentage: '0',
+  gstInclusive: 'exclusive',
+})
 
 export interface SaleFormValues {
   customerId?: string
@@ -36,6 +55,7 @@ export interface SaleFormValues {
   paidAmount?: string
   note?: string
   items: SaleFormItem[]
+  extraCharges: ExtraChargeFormItem[]
 }
 
 interface SaleModalProps {
@@ -58,7 +78,8 @@ export default function SaleModal({ open, onClose }: SaleModalProps) {
     saleDate: '',
     paidAmount: '0',
     note: '',
-    items: [{ productId: '', quantity: '1', price: '0', discount: '0' }],
+    items: [createEmptyItem()],
+    extraCharges: [],
   })
 
   const { data: customerData } = useCustomers({ page: 1, limit: 200 })
@@ -90,6 +111,28 @@ export default function SaleModal({ open, onClose }: SaleModalProps) {
     [products],
   )
 
+  const discountTypeCollection = useMemo(
+    () =>
+      createListCollection({
+        items: [
+          { label: 'Percentage (%)', value: 'percentage' },
+          { label: 'Absolute (â‚¹)', value: 'absolute' },
+        ],
+      }),
+    [],
+  )
+
+  const gstModeCollection = useMemo(
+    () =>
+      createListCollection({
+        items: [
+          { label: 'Exclusive', value: 'exclusive' },
+          { label: 'Inclusive', value: 'inclusive' },
+        ],
+      }),
+    [],
+  )
+
   const productById = useMemo(
     () =>
       products.reduce<Record<string, any>>((acc, product) => {
@@ -109,7 +152,8 @@ export default function SaleModal({ open, onClose }: SaleModalProps) {
       saleDate: getTodayDate(),
       paidAmount: '0',
       note: '',
-      items: [{ productId: '', quantity: '1', price: '0', discount: '0' }],
+      items: [createEmptyItem()],
+      extraCharges: [],
     })
   }, [open])
 
@@ -117,38 +161,58 @@ export default function SaleModal({ open, onClose }: SaleModalProps) {
     const summary = formData.items.reduce(
       (acc, item) => {
         const qty = Number(item.quantity || 0)
-        const price = Number(item.price || 0)
-        const discount = Number(item.discount || 0)
-
         const safeQty = Number.isFinite(qty) && qty > 0 ? qty : 0
-        const safePrice = Number.isFinite(price) && price > 0 ? price : 0
-        const safeDiscount = Number.isFinite(discount) && discount > 0 ? discount : 0
-        const baseAmount = Math.max(0, safePrice - safeDiscount) * safeQty
 
-        const product = productById[item.productId]
-        const gstPercentage = Number(product?.gstPercentage || 0)
-        const isGstInclusive = !!product?.gstInclusive
+        const price = Number(item.price || 0)
+        const safePrice = Number.isFinite(price) && price > 0 ? price : 0
+        const discountType = item.discountType === 'absolute' ? 'absolute' : 'percentage'
+        const discountValue = Number(item.discountValue || 0)
+        const discountPerUnitRaw =
+          discountType === 'percentage' ? (safePrice * discountValue) / 100 : discountValue
+        const discountPerUnit = Math.min(safePrice, Math.max(0, discountPerUnitRaw))
+
+        const baseAmount = safePrice * safeQty
+        const discountAmount = discountPerUnit * safeQty
+        const taxableAmount = baseAmount - discountAmount
+
+        const gstPercentage = Math.max(0, Math.min(100, Number(item.gstPercentage || 0)))
+        const isGstInclusive = item.gstInclusive === 'inclusive'
         const gstAmount =
-          !isGstInclusive && gstPercentage > 0 ? (baseAmount * gstPercentage) / 100 : 0
+          !isGstInclusive && gstPercentage > 0 ? (taxableAmount * gstPercentage) / 100 : 0
+
+        const lineTotal = taxableAmount + gstAmount
 
         acc.subtotal += baseAmount
+        acc.totalDiscount += discountAmount
+        acc.taxable += taxableAmount
         acc.totalGst += gstAmount
+        acc.totalAmount += lineTotal
         return acc
       },
-      { subtotal: 0, totalGst: 0 },
+      { subtotal: 0, totalDiscount: 0, taxable: 0, totalGst: 0, totalAmount: 0 },
     )
 
-    const totalAmount = summary.subtotal + summary.totalGst
+    const extraChargesTotal = formData.extraCharges.reduce((acc, charge) => {
+      const amount = Number(charge.amount || 0)
+      const safeAmount = Number.isFinite(amount) && amount > 0 ? amount : 0
+      return acc + safeAmount
+    }, 0)
+
+    const grandTotal = summary.totalAmount + extraChargesTotal
     const paidAmount = Number(formData.paidAmount || 0)
-    const dueAmount = totalAmount - (Number.isFinite(paidAmount) ? paidAmount : 0)
+    const dueAmount = grandTotal - (Number.isFinite(paidAmount) ? paidAmount : 0)
 
     return {
       subtotal: summary.subtotal,
+      totalDiscount: summary.totalDiscount,
+      taxable: summary.taxable,
       totalGst: summary.totalGst,
-      totalAmount,
+      lineItemsTotal: summary.totalAmount,
+      extraChargesTotal,
+      totalAmount: grandTotal,
       dueAmount,
     }
-  }, [formData.items, formData.paidAmount, productById])
+  }, [formData.items, formData.paidAmount, formData.extraCharges, productById])
 
   function updateItem(index: number, key: keyof SaleFormItem, value: string) {
     setFormData((prev) => {
@@ -161,7 +225,7 @@ export default function SaleModal({ open, onClose }: SaleModalProps) {
   function addItem() {
     setFormData((prev) => ({
       ...prev,
-      items: [...prev.items, { productId: '', quantity: '1', price: '0', discount: '0' }],
+      items: [...prev.items, createEmptyItem()],
     }))
   }
 
@@ -170,6 +234,28 @@ export default function SaleModal({ open, onClose }: SaleModalProps) {
       if (prev.items.length === 1) return prev
       return { ...prev, items: prev.items.filter((_, i) => i !== index) }
     })
+  }
+
+  function addExtraCharge() {
+    setFormData((prev) => ({
+      ...prev,
+      extraCharges: [...prev.extraCharges, { label: '', amount: '0' }],
+    }))
+  }
+
+  function updateExtraCharge(index: number, key: keyof ExtraChargeFormItem, value: string) {
+    setFormData((prev) => {
+      const extraCharges = [...prev.extraCharges]
+      extraCharges[index] = { ...extraCharges[index], [key]: value }
+      return { ...prev, extraCharges }
+    })
+  }
+
+  function removeExtraCharge(index: number) {
+    setFormData((prev) => ({
+      ...prev,
+      extraCharges: prev.extraCharges.filter((_, i) => i !== index),
+    }))
   }
 
   function handleSubmit() {
@@ -187,8 +273,17 @@ export default function SaleModal({ open, onClose }: SaleModalProps) {
           productId: item.productId,
           quantity: Number(item.quantity),
           price: Number(item.price || 0),
-          discount: Number(item.discount || 0),
+          discountType: item.discountType,
+          discountValue: Number(item.discountValue || 0),
+          gstPercentage: Number(item.gstPercentage || 0),
+          gstInclusive: item.gstInclusive === 'inclusive',
         })),
+      extraCharges: formData.extraCharges
+        .map((charge) => ({
+          label: charge.label?.trim() || 'Additional Charge',
+          amount: Number(charge.amount || 0),
+        }))
+        .filter((charge) => Number.isFinite(charge.amount) && charge.amount > 0),
     }
 
     createSale.mutate(payload, { onSuccess: onClose })
@@ -302,8 +397,8 @@ export default function SaleModal({ open, onClose }: SaleModalProps) {
                 </Box>
 
                 {/* Invoice info */}
-                <HStack gap={3} align="start" flexWrap="wrap">
-                  <Field.Root flex="1" minW="180px">
+                <SimpleGrid columns={{ base: 1, md: 2 }} gap={3}>
+                  <Field.Root>
                     <Field.Label color="gray.700" fontWeight="600">
                       Invoice Number
                     </Field.Label>
@@ -318,7 +413,7 @@ export default function SaleModal({ open, onClose }: SaleModalProps) {
                     />
                   </Field.Root>
 
-                  <Field.Root flex="1" minW="180px">
+                  <Field.Root>
                     <Field.Label color="gray.700" fontWeight="600">
                       Sale Date
                     </Field.Label>
@@ -328,7 +423,7 @@ export default function SaleModal({ open, onClose }: SaleModalProps) {
                       onChange={(value) => setFormData((prev) => ({ ...prev, saleDate: value }))}
                     />
                   </Field.Root>
-                </HStack>
+                </SimpleGrid>
 
                 {/* Items */}
                 <Box border="1px solid" borderColor="gray.200" borderRadius="14px" p={3} bg="white">
@@ -336,7 +431,7 @@ export default function SaleModal({ open, onClose }: SaleModalProps) {
                     <Text fontSize="sm" fontWeight="700" color="gray.800">
                       Sale Items
                     </Text>
-                    <Button size="sm" variant="outline" onClick={addItem}>
+                    <Button size="sm" variant="subtle" onClick={addItem}>
                       <HStack gap={1}>
                         <Plus size={14} />
                         <Text fontSize="xs">Add Item</Text>
@@ -344,136 +439,410 @@ export default function SaleModal({ open, onClose }: SaleModalProps) {
                     </Button>
                   </HStack>
 
-                  <VStack align="stretch" gap={2}>
+                  <VStack align="stretch" gap={3}>
                     {formData.items.map((item, index) => (
-                      <HStack key={index} gap={2} align="end" flexWrap="wrap">
-                        <Field.Root flex="2" minW="200px">
-                          <Field.Label fontSize="xs" color="gray.600">
-                            Product
-                          </Field.Label>
-                          <Select.Root
-                            collection={productCollection}
-                            value={item.productId ? [item.productId] : []}
-                            onValueChange={(details) => {
-                              const selectedProductId = details.value[0] || ''
-                              updateItem(index, 'productId', selectedProductId)
+                      <Box
+                        key={index}
+                        border="1px solid"
+                        borderColor="gray.200"
+                        borderRadius="10px"
+                        p={3}
+                      >
+                        <Box
+                          display="grid"
+                          gap={2}
+                          gridTemplateColumns={{
+                            base: '1fr',
+                            md: 'repeat(2, minmax(0, 1fr))',
+                            lg: 'repeat(4, minmax(0, 1fr))',
+                          }}
+                        >
+                          <Field.Root gridColumn={{ base: 'auto', lg: 'span 2' }}>
+                            <Field.Label fontSize="xs" color="gray.600">
+                              Product
+                            </Field.Label>
+                            <Select.Root
+                              collection={productCollection}
+                              value={item.productId ? [item.productId] : []}
+                              onValueChange={(details) => {
+                                const selectedProductId = details.value[0] || ''
+                                const selectedProduct = productById[selectedProductId]
 
-                              // Auto-fill price from product's sellingPrice
-                              if (selectedProductId) {
-                                const product = products.find(
-                                  (p: any) => p._id === selectedProductId,
+                                setFormData((prev) => {
+                                  const items = [...prev.items]
+                                  items[index] = {
+                                    ...items[index],
+                                    productId: selectedProductId,
+                                    price: String(selectedProduct?.sellingPrice ?? 0),
+                                    discountType:
+                                      selectedProduct?.discountType === 'absolute'
+                                        ? 'absolute'
+                                        : 'percentage',
+                                    discountValue: String(selectedProduct?.discountValue ?? 0),
+                                    gstPercentage: String(selectedProduct?.gstPercentage ?? 0),
+                                    gstInclusive: selectedProduct?.gstInclusive
+                                      ? 'inclusive'
+                                      : 'exclusive',
+                                  }
+                                  return { ...prev, items }
+                                })
+                              }}
+                              positioning={{ strategy: 'fixed', hideWhenDetached: true }}
+                            >
+                              <Select.HiddenSelect />
+                              <Select.Control>
+                                <Select.Trigger>
+                                  <Select.ValueText placeholder="Select product" />
+                                </Select.Trigger>
+                                <Select.IndicatorGroup>
+                                  <Select.Indicator />
+                                </Select.IndicatorGroup>
+                              </Select.Control>
+                              <Select.Positioner>
+                                <Select.Content bg="white">
+                                  {productCollection.items.map((collectionItem) => (
+                                    <Select.Item item={collectionItem} key={collectionItem.value}>
+                                      {collectionItem.label}
+                                      <Select.ItemIndicator />
+                                    </Select.Item>
+                                  ))}
+                                </Select.Content>
+                              </Select.Positioner>
+                            </Select.Root>
+                          </Field.Root>
+
+                          <Field.Root>
+                            <Field.Label fontSize="xs" color="gray.600">
+                              Qty
+                            </Field.Label>
+                            <Input
+                              type="number"
+                              min={1}
+                              value={item.quantity}
+                              onChange={(e) => updateItem(index, 'quantity', e.target.value)}
+                              bg="white"
+                              borderColor="gray.200"
+                            />
+                          </Field.Root>
+
+                          <Field.Root>
+                            <Field.Label fontSize="xs" color="gray.600">
+                              Price (per unit)
+                            </Field.Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              value={item.price}
+                              onChange={(e) => updateItem(index, 'price', e.target.value)}
+                              bg="white"
+                              borderColor="gray.200"
+                            />
+                          </Field.Root>
+
+                          <Field.Root>
+                            <Field.Label fontSize="xs" color="gray.600">
+                              Discount Type
+                            </Field.Label>
+                            <Select.Root
+                              collection={discountTypeCollection}
+                              value={[item.discountType]}
+                              onValueChange={(details) =>
+                                updateItem(
+                                  index,
+                                  'discountType',
+                                  (details.value[0] as 'percentage' | 'absolute') || 'percentage',
                                 )
-                                if (product) {
-                                  updateItem(index, 'price', String(product.sellingPrice || 0))
-                                }
                               }
-                            }}
-                            positioning={{ strategy: 'fixed', hideWhenDetached: true }}
-                          >
-                            <Select.HiddenSelect />
-                            <Select.Control>
-                              <Select.Trigger>
-                                <Select.ValueText placeholder="Select product" />
-                              </Select.Trigger>
-                              <Select.IndicatorGroup>
-                                <Select.Indicator />
-                              </Select.IndicatorGroup>
-                            </Select.Control>
-                            <Select.Positioner>
-                              <Select.Content bg="white">
-                                {productCollection.items.map((collectionItem) => (
-                                  <Select.Item item={collectionItem} key={collectionItem.value}>
-                                    {collectionItem.label}
-                                    <Select.ItemIndicator />
-                                  </Select.Item>
-                                ))}
-                              </Select.Content>
-                            </Select.Positioner>
-                          </Select.Root>
-                        </Field.Root>
+                              positioning={{ strategy: 'fixed', hideWhenDetached: true }}
+                            >
+                              <Select.HiddenSelect />
+                              <Select.Control>
+                                <Select.Trigger>
+                                  <Select.ValueText />
+                                </Select.Trigger>
+                                <Select.IndicatorGroup>
+                                  <Select.Indicator />
+                                </Select.IndicatorGroup>
+                              </Select.Control>
+                              <Select.Positioner>
+                                <Select.Content bg="white">
+                                  {discountTypeCollection.items.map((collectionItem) => (
+                                    <Select.Item item={collectionItem} key={collectionItem.value}>
+                                      {collectionItem.label}
+                                      <Select.ItemIndicator />
+                                    </Select.Item>
+                                  ))}
+                                </Select.Content>
+                              </Select.Positioner>
+                            </Select.Root>
+                          </Field.Root>
 
-                        <Field.Root minW="90px">
-                          <Field.Label fontSize="xs" color="gray.600">
-                            Qty
-                          </Field.Label>
-                          <Input
-                            type="number"
-                            min={1}
-                            value={item.quantity}
-                            onChange={(e) => updateItem(index, 'quantity', e.target.value)}
-                            bg="white"
-                            borderColor="gray.200"
-                          />
-                        </Field.Root>
+                          <Field.Root>
+                            <Field.Label fontSize="xs" color="gray.600">
+                              Discount Value
+                            </Field.Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              value={item.discountValue}
+                              onChange={(e) => updateItem(index, 'discountValue', e.target.value)}
+                              bg="white"
+                              borderColor="gray.200"
+                            />
+                          </Field.Root>
 
-                        <Field.Root minW="110px">
-                          <Field.Label fontSize="xs" color="gray.600">
-                            Price
-                          </Field.Label>
-                          <Input
-                            type="number"
-                            min={0}
-                            value={item.price}
-                            onChange={(e) => updateItem(index, 'price', e.target.value)}
-                            bg="white"
-                            borderColor="gray.200"
-                          />
-                        </Field.Root>
+                          <Field.Root>
+                            <Field.Label fontSize="xs" color="gray.600">
+                              GST (%)
+                            </Field.Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              max={100}
+                              value={item.gstPercentage}
+                              onChange={(e) => updateItem(index, 'gstPercentage', e.target.value)}
+                              bg="white"
+                              borderColor="gray.200"
+                            />
+                          </Field.Root>
 
-                        <Field.Root minW="110px">
-                          <Field.Label fontSize="xs" color="gray.600">
-                            Discount
-                          </Field.Label>
-                          <Input
-                            type="number"
-                            min={0}
-                            value={item.discount}
-                            onChange={(e) => updateItem(index, 'discount', e.target.value)}
-                            bg="white"
-                            borderColor="gray.200"
-                          />
-                        </Field.Root>
-
-                        <Box minW="120px" pb={1}>
-                          <Text fontSize="xs" color="gray.600" mb={1}>
-                            GST
-                          </Text>
-                          <Text fontSize="sm" color="gray.800" fontWeight="600">
-                            ₹
-                            {(() => {
-                              const product = productById[item.productId]
-                              const gstPercentage = Number(product?.gstPercentage || 0)
-                              const isGstInclusive = !!product?.gstInclusive
-                              const qty = Number(item.quantity || 0)
-                              const price = Number(item.price || 0)
-                              const discount = Number(item.discount || 0)
-                              const baseAmount = Math.max(0, price - discount) * Math.max(0, qty)
-                              const gstAmount =
-                                !isGstInclusive && gstPercentage > 0
-                                  ? (baseAmount * gstPercentage) / 100
-                                  : 0
-                              return gstAmount.toFixed(2)
-                            })()}
-                          </Text>
+                          <Field.Root>
+                            <Field.Label fontSize="xs" color="gray.600">
+                              GST Mode
+                            </Field.Label>
+                            <Select.Root
+                              collection={gstModeCollection}
+                              value={[item.gstInclusive]}
+                              onValueChange={(details) =>
+                                updateItem(
+                                  index,
+                                  'gstInclusive',
+                                  (details.value[0] as 'exclusive' | 'inclusive') || 'exclusive',
+                                )
+                              }
+                              positioning={{ strategy: 'fixed', hideWhenDetached: true }}
+                            >
+                              <Select.HiddenSelect />
+                              <Select.Control>
+                                <Select.Trigger>
+                                  <Select.ValueText />
+                                </Select.Trigger>
+                                <Select.IndicatorGroup>
+                                  <Select.Indicator />
+                                </Select.IndicatorGroup>
+                              </Select.Control>
+                              <Select.Positioner>
+                                <Select.Content bg="white">
+                                  {gstModeCollection.items.map((collectionItem) => (
+                                    <Select.Item item={collectionItem} key={collectionItem.value}>
+                                      {collectionItem.label}
+                                      <Select.ItemIndicator />
+                                    </Select.Item>
+                                  ))}
+                                </Select.Content>
+                              </Select.Positioner>
+                            </Select.Root>
+                          </Field.Root>
                         </Box>
+
+                        <HStack justify="space-between" mt={2}>
+                          <Text fontSize="xs" color="gray.600">
+                            Amount = (Qty x Price) - Discount + GST
+                          </Text>
+                          <Button
+                            size="xs"
+                            colorPalette="red"
+                            variant="ghost"
+                            onClick={() => removeItem(index)}
+                            disabled={formData.items.length === 1}
+                          >
+                            <Trash2 size={13} />
+                          </Button>
+                        </HStack>
+                      </Box>
+                    ))}
+                  </VStack>
+                </Box>
+
+                {/* Extra Charges */}
+                <Box border="1px solid" borderColor="gray.200" borderRadius="14px" p={3} bg="white">
+                  <HStack justify="space-between" mb={3}>
+                    <Text fontSize="sm" fontWeight="700" color="gray.800">
+                      Extra Charges
+                    </Text>
+                    <Button size="sm" variant="subtle" onClick={addExtraCharge}>
+                      <HStack gap={1}>
+                        <Plus size={14} />
+                        <Text fontSize="xs">Add Charge</Text>
+                      </HStack>
+                    </Button>
+                  </HStack>
+
+                  <VStack align="stretch" gap={2}>
+                    {formData.extraCharges.length === 0 ? (
+                      <Text fontSize="xs" color="gray.500">
+                        Add delivery or other charges if required.
+                      </Text>
+                    ) : null}
+
+                    {formData.extraCharges.map((charge, index) => (
+                      <Box
+                        key={index}
+                        display="grid"
+                        gap={2}
+                        alignItems="end"
+                        gridTemplateColumns={{ base: '1fr', md: '2fr 1fr auto' }}
+                      >
+                        <Field.Root>
+                          <Field.Label fontSize="xs" color="gray.600">
+                            Charge Name
+                          </Field.Label>
+                          <Input
+                            value={charge.label}
+                            onChange={(e) => updateExtraCharge(index, 'label', e.target.value)}
+                            placeholder="e.g. Delivery Charge"
+                            bg="white"
+                            borderColor="gray.200"
+                          />
+                        </Field.Root>
+
+                        <Field.Root>
+                          <Field.Label fontSize="xs" color="gray.600">
+                            Amount
+                          </Field.Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={charge.amount}
+                            onChange={(e) => updateExtraCharge(index, 'amount', e.target.value)}
+                            bg="white"
+                            borderColor="gray.200"
+                          />
+                        </Field.Root>
 
                         <Button
                           size="sm"
                           colorPalette="red"
                           variant="ghost"
-                          onClick={() => removeItem(index)}
-                          disabled={formData.items.length === 1}
+                          onClick={() => removeExtraCharge(index)}
+                          mb={1}
                         >
                           <Trash2 size={14} />
                         </Button>
-                      </HStack>
+                      </Box>
                     ))}
                   </VStack>
                 </Box>
 
+                {/* Summary */}
+                <Box
+                  border="1px solid"
+                  borderColor="gray.200"
+                  borderRadius="14px"
+                  p={3}
+                  bg="gray.50"
+                >
+                  <Text fontSize="sm" fontWeight="700" color="gray.800" mb={2}>
+                    Summary
+                  </Text>
+
+                  <SimpleGrid columns={{ base: 1, md: 2 }} gap={2}>
+                    <HStack justify="space-between" bg="white" borderRadius="10px" px={3} py={2}>
+                      <Text fontSize="xs" color="gray.600">
+                        Subtotal
+                      </Text>
+                      <Text fontSize="sm" fontWeight="600" color="gray.800">
+                        â‚¹{totals.subtotal.toFixed(2)}
+                      </Text>
+                    </HStack>
+
+                    <HStack justify="space-between" bg="white" borderRadius="10px" px={3} py={2}>
+                      <Text fontSize="xs" color="gray.600">
+                        Discount
+                      </Text>
+                      <Text fontSize="sm" fontWeight="600" color="red.600">
+                        - â‚¹{totals.totalDiscount.toFixed(2)}
+                      </Text>
+                    </HStack>
+
+                    <HStack justify="space-between" bg="white" borderRadius="10px" px={3} py={2}>
+                      <Text fontSize="xs" color="gray.600">
+                        Taxable
+                      </Text>
+                      <Text fontSize="sm" fontWeight="600" color="gray.800">
+                        â‚¹{totals.taxable.toFixed(2)}
+                      </Text>
+                    </HStack>
+
+                    <HStack justify="space-between" bg="white" borderRadius="10px" px={3} py={2}>
+                      <Text fontSize="xs" color="gray.600">
+                        GST
+                      </Text>
+                      <Text fontSize="sm" fontWeight="600" color="gray.800">
+                        â‚¹{totals.totalGst.toFixed(2)}
+                      </Text>
+                    </HStack>
+
+                    <HStack justify="space-between" bg="white" borderRadius="10px" px={3} py={2}>
+                      <Text fontSize="xs" color="gray.600">
+                        Items Total
+                      </Text>
+                      <Text fontSize="sm" fontWeight="700" color="gray.900">
+                        â‚¹{totals.lineItemsTotal.toFixed(2)}
+                      </Text>
+                    </HStack>
+
+                    <HStack justify="space-between" bg="white" borderRadius="10px" px={3} py={2}>
+                      <Text fontSize="xs" color="gray.600">
+                        Extra Charges
+                      </Text>
+                      <Text fontSize="sm" fontWeight="700" color="gray.900">
+                        â‚¹{totals.extraChargesTotal.toFixed(2)}
+                      </Text>
+                    </HStack>
+                  </SimpleGrid>
+
+                  <Box h="1px" bg="gray.200" my={3} />
+
+                  <HStack justify="space-between" bg="white" borderRadius="12px" px={3} py={3}>
+                    <Text fontSize="sm" fontWeight="700" color="gray.900">
+                      Grand Total
+                    </Text>
+                    <Text fontSize="md" fontWeight="800" color="gray.900">
+                      â‚¹{totals.totalAmount.toFixed(2)}
+                    </Text>
+                  </HStack>
+
+                  <HStack
+                    justify="space-between"
+                    mt={2}
+                    bg="white"
+                    borderRadius="12px"
+                    px={3}
+                    py={2}
+                  >
+                    <Text fontSize="sm" fontWeight="700" color="gray.900">
+                      {totals.dueAmount < 0 ? 'Advance' : 'Due'}
+                    </Text>
+                    <Text
+                      fontSize="sm"
+                      fontWeight="800"
+                      color={
+                        totals.dueAmount > 0
+                          ? 'orange.600'
+                          : totals.dueAmount < 0
+                            ? 'blue.600'
+                            : 'green.600'
+                      }
+                    >
+                      â‚¹{Math.abs(totals.dueAmount).toFixed(2)}
+                    </Text>
+                  </HStack>
+                </Box>
+
                 {/* Payment + Note */}
-                <HStack gap={3} align="start" flexWrap="wrap">
-                  <Field.Root flex="1" minW="180px">
+                <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
+                  <Field.Root>
                     <Field.Label color="gray.700" fontWeight="600">
                       Paid Amount
                     </Field.Label>
@@ -489,7 +858,7 @@ export default function SaleModal({ open, onClose }: SaleModalProps) {
                     />
                   </Field.Root>
 
-                  <Field.Root flex="2" minW="220px">
+                  <Field.Root gridColumn={{ base: 'auto', md: 'span 2' }}>
                     <Field.Label color="gray.700" fontWeight="600">
                       Note
                     </Field.Label>
@@ -501,44 +870,13 @@ export default function SaleModal({ open, onClose }: SaleModalProps) {
                       borderColor="gray.200"
                     />
                   </Field.Root>
-                </HStack>
-
-                {/* Totals */}
-                <VStack align="stretch" gap={1} p={3} borderRadius="12px" bg="gray.50">
-                  <HStack justify="space-between">
-                    <Text fontSize="sm" fontWeight="600" color="gray.700">
-                      Subtotal: ₹{totals.subtotal.toFixed(2)}
-                    </Text>
-                    <Text fontSize="sm" fontWeight="600" color="gray.700">
-                      GST: ₹{totals.totalGst.toFixed(2)}
-                    </Text>
-                  </HStack>
-                  <HStack justify="space-between">
-                    <Text fontSize="sm" fontWeight="700" color="gray.900">
-                      Total: ₹{totals.totalAmount.toFixed(2)}
-                    </Text>
-                    <Text
-                      fontSize="sm"
-                      fontWeight="700"
-                      color={
-                        totals.dueAmount > 0
-                          ? 'orange.600'
-                          : totals.dueAmount < 0
-                            ? 'blue.600'
-                            : 'green.600'
-                      }
-                    >
-                      {totals.dueAmount < 0 ? 'Advance' : 'Due'}: ₹
-                      {Math.abs(totals.dueAmount).toFixed(2)}
-                    </Text>
-                  </HStack>
-                </VStack>
+                </SimpleGrid>
               </VStack>
             </Dialog.Body>
 
             <Dialog.Footer gap={3} justifyContent="flex-end">
               <Dialog.ActionTrigger asChild>
-                <Button variant="outline" width="50%" color="gray.700" borderColor="gray.300">
+                <Button variant="subtle" width="50%" color="gray.700" borderColor="gray.300">
                   Cancel
                 </Button>
               </Dialog.ActionTrigger>

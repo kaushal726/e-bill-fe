@@ -14,9 +14,9 @@ export function LandingHeader() {
       top={0}
       zIndex={1000}
       backdropFilter="blur(10px)"
-      bg="rgba(0, 0, 0, 0.9)"
+      bg="rgba(2, 6, 23, 0.82)"
       borderBottomWidth="1px"
-      borderBottomColor="purple.900"
+      borderBottomColor="whiteAlpha.200"
       shadow="sm"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -30,14 +30,20 @@ export function LandingHeader() {
               <HStack gap={2}>
                 <Box
                   p={2}
-                  bgGradient="linear(to-br, purple.500, purple.700)"
+                  bgGradient="linear(to-br, orange.500, cyan.500)"
                   borderRadius="lg"
                   color="white"
                 >
                   <Sparkles size={20} />
                 </Box>
-                <Heading size="lg" fontWeight="800" color="white" letterSpacing="tight">
-                  EBill
+                <Heading
+                  size="lg"
+                  fontWeight="700"
+                  color="white"
+                  letterSpacing="tight"
+                  fontFamily="'Irish Grover', 'Poppins', sans-serif"
+                >
+                  eBillX
                 </Heading>
               </HStack>
             </RouterLink>
@@ -55,8 +61,8 @@ export function LandingHeader() {
             </Button>
 
             <Button
-              bgGradient="linear(to-r, purple.500, purple.700)"
-              color="purple.500"
+              bgGradient="linear(to-r, orange.500, cyan.500)"
+              color="white"
               fontWeight="700"
               px={6}
               borderRadius="full"
@@ -100,8 +106,8 @@ export function LandingHeader() {
                   </Menu.Item>
                   <Menu.Item
                     value="get-started"
-                    color="purple.500"
-                    bgGradient="linear(to-r, purple.500, purple.700)"
+                    color="white"
+                    bgGradient="linear(to-r, orange.500, cyan.500)"
                     asChild
                   >
                     <RouterLink to="/login">Get Started</RouterLink>
@@ -120,11 +126,11 @@ function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
   return (
     <Text
       fontWeight="600"
-      color="gray.300"
+      color="gray.200"
       fontSize="md"
       transition="all 0.2s"
       _hover={{
-        color: 'purple.400',
+        color: 'orange.500',
         transform: 'translateY(-1px)',
       }}
       asChild

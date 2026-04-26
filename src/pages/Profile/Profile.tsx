@@ -127,17 +127,17 @@ function Profile() {
       minH="100%"
       px={{ base: 4, md: 6 }}
       py={{ base: 4, md: 6 }}
-      bg="linear-gradient(180deg, #fffaf5 0%, #f8fafc 42%, #eef2ff 100%)"
+      bg="linear-gradient(180deg, #fffdf8 0%, #f8fafc 46%, #f0fdfa 100%)"
     >
       <Stack maxW="1180px" mx="auto" gap={5}>
         <Grid templateColumns={{ base: '1fr', xl: '360px 1fr' }} gap={5} alignItems="start">
           <Box
-            bg="rgba(255,255,255,0.84)"
+            bg="rgba(255,255,255,0.92)"
             border="1px solid rgba(255,255,255,0.8)"
             backdropFilter="blur(14px)"
             borderRadius="30px"
             p={{ base: 5, md: 6 }}
-            boxShadow="0 18px 60px rgba(15,23,42,0.08)"
+            boxShadow="0 12px 32px rgba(15,23,42,0.08)"
           >
             <VStack align="start" gap={5}>
               <HStack justify="space-between" w="full" align="start">
@@ -151,7 +151,13 @@ function Profile() {
                   <Text color="gray.500">{data.shopName}</Text>
                 </VStack>
 
-                <Avatar.Root size="xl" bg="orange.50" color="orange.700">
+                <Avatar.Root
+                  size="xl"
+                  bg="orange.100"
+                  color="orange.700"
+                  borderWidth="2px"
+                  borderColor="orange.200"
+                >
                   <Avatar.Fallback>{data.firstName?.[0] ?? 'A'}</Avatar.Fallback>
                 </Avatar.Root>
               </HStack>
@@ -160,7 +166,7 @@ function Profile() {
                 w="full"
                 p={4}
                 borderRadius="22px"
-                bg="orange.50"
+                bg="linear-gradient(135deg, #fff7ed 0%, #ffffff 100%)"
                 border="1px solid"
                 borderColor="orange.100"
               >
@@ -181,7 +187,7 @@ function Profile() {
               </Box>
 
               <Grid templateColumns="repeat(2, 1fr)" gap={3} w="full">
-                <Box p={4} borderRadius="20px" bg="gray.50">
+                <Box p={4} borderRadius="20px" bg="white" border="1px solid" borderColor="gray.100">
                   <Text
                     fontSize="xs"
                     color="gray.500"
@@ -195,7 +201,7 @@ function Profile() {
                   </Text>
                 </Box>
 
-                <Box p={4} borderRadius="20px" bg="gray.50">
+                <Box p={4} borderRadius="20px" bg="white" border="1px solid" borderColor="gray.100">
                   <Text
                     fontSize="xs"
                     color="gray.500"
@@ -209,33 +215,16 @@ function Profile() {
                   </Text>
                 </Box>
               </Grid>
-
-              <Box
-                p={4}
-                borderRadius="22px"
-                bg="teal.50"
-                border="1px solid"
-                borderColor="teal.100"
-                w="full"
-              >
-                <Text fontSize="sm" fontWeight="700" color="gray.900">
-                  Admin-only setup
-                </Text>
-                <Text mt={1} fontSize="sm" color="gray.600">
-                  Signup is not exposed here. This account is the workspace owner and can update
-                  core business identity details from this screen.
-                </Text>
-              </Box>
             </VStack>
           </Box>
 
           <Box
-            bg="rgba(255,255,255,0.84)"
+            bg="rgba(255,255,255,0.92)"
             border="1px solid rgba(255,255,255,0.8)"
             backdropFilter="blur(14px)"
             borderRadius="30px"
             p={{ base: 5, md: 6 }}
-            boxShadow="0 18px 60px rgba(15,23,42,0.08)"
+            boxShadow="0 12px 32px rgba(15,23,42,0.08)"
           >
             <Stack gap={6}>
               <Box>
@@ -258,6 +247,10 @@ function Profile() {
                         size="lg"
                         bg="white"
                         borderColor="gray.200"
+                        _focus={{
+                          borderColor: 'orange.300',
+                          boxShadow: '0 0 0 3px rgba(251,146,60,0.12)',
+                        }}
                       />
                     </Field.Root>
 
@@ -268,6 +261,10 @@ function Profile() {
                         size="lg"
                         bg="white"
                         borderColor="gray.200"
+                        _focus={{
+                          borderColor: 'orange.300',
+                          boxShadow: '0 0 0 3px rgba(251,146,60,0.12)',
+                        }}
                       />
                     </Field.Root>
                   </Grid>
@@ -280,6 +277,10 @@ function Profile() {
                         size="lg"
                         bg="white"
                         borderColor="gray.200"
+                        _focus={{
+                          borderColor: 'orange.300',
+                          boxShadow: '0 0 0 3px rgba(251,146,60,0.12)',
+                        }}
                       />
                     </Field.Root>
 
@@ -290,6 +291,10 @@ function Profile() {
                         size="lg"
                         bg="white"
                         borderColor="gray.200"
+                        _focus={{
+                          borderColor: 'orange.300',
+                          boxShadow: '0 0 0 3px rgba(251,146,60,0.12)',
+                        }}
                       />
                     </Field.Root>
                   </Grid>
@@ -323,9 +328,9 @@ function Profile() {
                       type="submit"
                       size="lg"
                       borderRadius="18px"
-                      bg="gray.950"
+                      bg="linear-gradient(135deg, #f97316 0%, #0ea5e9 100%)"
                       color="white"
-                      _hover={{ bg: 'gray.800' }}
+                      px={7}
                       loading={updateProfile.isPending}
                     >
                       Save changes

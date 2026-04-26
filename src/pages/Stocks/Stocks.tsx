@@ -1,19 +1,16 @@
 import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack, Badge } from '@chakra-ui/react'
 import { useEffect, useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { Plus } from 'lucide-react'
 
 import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 import { CommonTable } from '@/components/common/CommonTable'
 import { ExpandableSearch } from '@/components/common/ExpandableSearch'
-import StockAdjustmentModal from '@/components/modals/StockAdjustmentModal'
 import { useStockHistory } from '@/hooks/useStockHistory'
 import { useProducts } from '@/hooks/useProducts'
 
 const Stocks = () => {
   const dispatch = useDispatch()
 
-  const [adjustOpen, setAdjustOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState(search)
 
@@ -95,6 +92,23 @@ const Stocks = () => {
     totalOut,
     netMovement: totalIn - totalOut,
   }
+
+  const hasActiveFilters =
+    Boolean(debouncedSearch) ||
+    typeFilter !== 'all' ||
+    sourceFilter !== 'all' ||
+    productFilter !== 'all'
+
+  const sourceOptions: Array<{
+    value: 'all' | 'purchase' | 'sale' | 'adjustment' | 'damage'
+    label: string
+  }> = [
+    { value: 'all', label: 'All Sources' },
+    { value: 'purchase', label: 'Purchase' },
+    { value: 'sale', label: 'Sale' },
+    { value: 'adjustment', label: 'Adjustment' },
+    { value: 'damage', label: 'Damage' },
+  ]
 
   const stockColumns = [
     {
@@ -188,114 +202,129 @@ const Stocks = () => {
           </Box>
         </SimpleGrid>
 
-        <Flex
-          justify="space-between"
-          align={{ base: 'stretch', md: 'center' }}
+        <Box
           mt={4}
-          w="100%"
-          gap={4}
-          direction={{ base: 'column', md: 'row' }}
+          bg="rgba(255,255,255,0.92)"
+          border="1px solid"
+          borderColor="gray.200"
+          borderRadius="16px"
+          p={{ base: 3, md: 4 }}
+          boxShadow="0 8px 24px rgba(15, 23, 42, 0.05)"
         >
-          <HStack gap={2} align="center" flexWrap="wrap">
-            <ExpandableSearch
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search stock history..."
-              expandedWidth="300px"
-            />
+          <VStack align="stretch" gap={3}>
+            <HStack gap={2} align="center" flexWrap="wrap" justify="space-between">
+              <HStack gap={2} flexWrap="wrap">
+                <ExpandableSearch
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search product, note, source..."
+                  expandedWidth="320px"
+                />
 
-            <HStack bg="white" border="1px solid" borderColor="gray.100" borderRadius="10px" p={1}>
-              <Button
-                size="sm"
-                variant={typeFilter === 'all' ? 'solid' : 'ghost'}
-                bg={typeFilter === 'all' ? 'gray.900' : 'transparent'}
-                color={typeFilter === 'all' ? 'white' : 'gray.700'}
-                _hover={{ bg: typeFilter === 'all' ? 'gray.900' : 'gray.100' }}
-                onClick={() => setTypeFilter('all')}
-              >
-                All
-              </Button>
-              <Button
-                size="sm"
-                variant={typeFilter === 'IN' ? 'solid' : 'ghost'}
-                bg={typeFilter === 'IN' ? 'gray.900' : 'transparent'}
-                color={typeFilter === 'IN' ? 'white' : 'gray.700'}
-                _hover={{ bg: typeFilter === 'IN' ? 'gray.900' : 'gray.100' }}
-                onClick={() => setTypeFilter('IN')}
-              >
-                IN
-              </Button>
-              <Button
-                size="sm"
-                variant={typeFilter === 'OUT' ? 'solid' : 'ghost'}
-                bg={typeFilter === 'OUT' ? 'gray.900' : 'transparent'}
-                color={typeFilter === 'OUT' ? 'white' : 'gray.700'}
-                _hover={{ bg: typeFilter === 'OUT' ? 'gray.900' : 'gray.100' }}
-                onClick={() => setTypeFilter('OUT')}
-              >
-                OUT
-              </Button>
-            </HStack>
-
-            <HStack bg="white" border="1px solid" borderColor="gray.100" borderRadius="10px" p={1}>
-              <Button size="sm" variant="ghost" onClick={() => setSourceFilter('all')}>
-                Source: {sourceFilter}
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => setSourceFilter('purchase')}>
-                Purchase
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => setSourceFilter('sale')}>
-                Sale
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => setSourceFilter('adjustment')}>
-                Adjust
-              </Button>
-            </HStack>
-
-            <HStack
-              bg="white"
-              border="1px solid"
-              borderColor="gray.100"
-              borderRadius="10px"
-              p={1}
-              flexWrap="wrap"
-            >
-              <Button
-                size="sm"
-                variant={productFilter === 'all' ? 'solid' : 'ghost'}
-                onClick={() => setProductFilter('all')}
-              >
-                All Products
-              </Button>
-              {products.slice(0, 4).map((product: any) => (
-                <Button
-                  key={product._id}
-                  size="sm"
-                  variant={productFilter === product._id ? 'solid' : 'ghost'}
-                  onClick={() => setProductFilter(product._id)}
+                <HStack
+                  bg="white"
+                  border="1px solid"
+                  borderColor="gray.200"
+                  borderRadius="10px"
+                  p={1}
                 >
-                  {product.name}
-                </Button>
-              ))}
+                  <Button
+                    size="sm"
+                    variant={typeFilter === 'all' ? 'solid' : 'ghost'}
+                    bg={typeFilter === 'all' ? 'gray.900' : 'transparent'}
+                    color={typeFilter === 'all' ? 'white' : 'gray.700'}
+                    _hover={{ bg: typeFilter === 'all' ? 'gray.900' : 'gray.100' }}
+                    onClick={() => setTypeFilter('all')}
+                  >
+                    All Types
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={typeFilter === 'IN' ? 'solid' : 'ghost'}
+                    bg={typeFilter === 'IN' ? 'green.600' : 'transparent'}
+                    color={typeFilter === 'IN' ? 'white' : 'gray.700'}
+                    _hover={{ bg: typeFilter === 'IN' ? 'green.600' : 'gray.100' }}
+                    onClick={() => setTypeFilter('IN')}
+                  >
+                    IN
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={typeFilter === 'OUT' ? 'solid' : 'ghost'}
+                    bg={typeFilter === 'OUT' ? 'red.600' : 'transparent'}
+                    color={typeFilter === 'OUT' ? 'white' : 'gray.700'}
+                    _hover={{ bg: typeFilter === 'OUT' ? 'red.600' : 'gray.100' }}
+                    onClick={() => setTypeFilter('OUT')}
+                  >
+                    OUT
+                  </Button>
+                </HStack>
+              </HStack>
             </HStack>
-          </HStack>
 
-          <Button
-            bg="gray.950"
-            color="white"
-            h="38px"
-            px={4}
-            _hover={{ bg: 'gray.800' }}
-            onClick={() => setAdjustOpen(true)}
-          >
-            <HStack gap={1.5}>
-              <Plus size={18} />
-              <Text fontSize="sm" fontWeight="700">
-                Adjust Stock
-              </Text>
+            <HStack gap={2} flexWrap="wrap">
+              <select
+                style={{
+                  height: '38px',
+                  minWidth: '180px',
+                  padding: '0 12px',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '10px',
+                  background: 'white',
+                }}
+                value={sourceFilter}
+                onChange={(e) =>
+                  setSourceFilter(
+                    e.target.value as 'all' | 'purchase' | 'sale' | 'adjustment' | 'damage',
+                  )
+                }
+              >
+                {sourceOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                style={{
+                  height: '38px',
+                  minWidth: '220px',
+                  maxWidth: '320px',
+                  padding: '0 12px',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '10px',
+                  background: 'white',
+                }}
+                value={productFilter}
+                onChange={(e) => setProductFilter(e.target.value)}
+              >
+                <option value="all">All Products</option>
+                {products.map((product: any) => (
+                  <option key={product._id} value={product._id}>
+                    {product.name}
+                  </option>
+                ))}
+              </select>
+
+              <Button
+                h="38px"
+                px={3}
+                variant="outline"
+                borderColor="gray.300"
+                onClick={() => {
+                  setSearch('')
+                  setTypeFilter('all')
+                  setSourceFilter('all')
+                  setProductFilter('all')
+                }}
+                disabled={!hasActiveFilters}
+              >
+                Clear Filters
+              </Button>
             </HStack>
-          </Button>
-        </Flex>
+          </VStack>
+        </Box>
 
         <Box
           bg="rgba(255,255,255,0.86)"
@@ -377,8 +406,6 @@ const Stocks = () => {
           </Text>
         </VStack>
       </Flex>
-
-      <StockAdjustmentModal open={adjustOpen} onClose={() => setAdjustOpen(false)} />
     </>
   )
 }

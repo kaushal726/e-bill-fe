@@ -1,6 +1,6 @@
-import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack, Badge } from '@chakra-ui/react'
-import { useEffect, useMemo, useState } from 'react'
-import { Plus, Download } from 'lucide-react'
+import { Flex, HStack, Text, Button, Box, SimpleGrid, VStack, Badge, Input } from '@chakra-ui/react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Plus, Download, CalendarDays, FilterX } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { API } from '@/api/api'
 import API_ENDPOINTS from '@/api/apiEndpoints'
@@ -14,7 +14,7 @@ import ConfirmDeleteDialog from '@/components/modals/ConfirmDelete'
 import PurchaseModal from '@/components/modals/PurchaseModal'
 import PurchasePaymentModal from '@/components/modals/PurchasePaymentModal'
 
-import { usePurchase } from '@/hooks/usePurchase'
+import { usePurchase, type PurchasePaymentStatus } from '@/hooks/usePurchase'
 import { usePurchaseActions } from '@/hooks/usePurchaseActions'
 
 const paymentStatusColor = {
@@ -41,14 +41,69 @@ function Purchase() {
 
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState(search)
+  const [supplierIdFilter, setSupplierIdFilter] = useState('')
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('')
+  const [fromDateFilter, setFromDateFilter] = useState('')
+  const [toDateFilter, setToDateFilter] = useState('')
+  const fromDateRef = useRef<HTMLInputElement>(null)
+  const toDateRef = useRef<HTMLInputElement>(null)
 
   const [page, setPage] = useState(1)
   const limit = 20
 
   const [isExporting, setIsExporting] = useState(false)
 
-  const { data: purchaseData = [], isLoading } = usePurchase()
+  const { data: purchaseResponse, isLoading } = usePurchase({
+    supplierId: supplierIdFilter || undefined,
+    paymentStatus: (paymentStatusFilter || undefined) as PurchasePaymentStatus | undefined,
+    fromDate: fromDateFilter || undefined,
+    toDate: toDateFilter || undefined,
+    search: debouncedSearch || undefined,
+  })
+  const purchaseData = purchaseResponse?.data || []
+  const apiSummary = purchaseResponse?.summary
   const { deletePurchase } = usePurchaseActions()
+
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 2,
+    }).format(Number(value || 0))
+
+  const getItemSummary = (p: any) => {
+    const items = Array.isArray(p.items) ? p.items : []
+    if (!items.length) return '-'
+
+    const productNames = items
+      .map((item: any) => item?.productId?.name || item?.productName)
+      .filter(Boolean)
+
+    if (!productNames.length) return '-'
+
+    return productNames.length > 2
+      ? `${productNames[0]}, ${productNames[1]} + ${productNames.length - 2} more`
+      : productNames.join(', ')
+  }
+
+  const getItemTotals = (p: any) => {
+    const items = Array.isArray(p.items) ? p.items : []
+    return items.reduce(
+      (
+        acc: { quantity: number; discount: number; gst: number; cgst: number; sgst: number },
+        item: any,
+      ) => {
+        const qty = Number(item?.quantity || 0)
+        acc.quantity += qty
+        acc.discount += Number(item?.discount || 0) * qty
+        acc.gst += Number(item?.gst || 0) * qty
+        acc.cgst += Number(item?.cgst || 0) * qty
+        acc.sgst += Number(item?.sgst || 0) * qty
+        return acc
+      },
+      { quantity: 0, discount: 0, gst: 0, cgst: 0, sgst: 0 },
+    )
+  }
 
   const downloadFile = (blob: Blob, filename: string) => {
     const url = window.URL.createObjectURL(blob)
@@ -113,43 +168,37 @@ function Purchase() {
 
   useEffect(() => {
     setPage(1)
-  }, [debouncedSearch])
-
-  const filteredPurchases = useMemo(() => {
-    const keyword = debouncedSearch.trim().toLowerCase()
-    if (!keyword) return purchaseData
-
-    return purchaseData.filter((p) => {
-      const haystack = [
-        p.invoiceNumber,
-        p.supplierId?.name || p.supplierName || '',
-        p.paymentStatus,
-        p.note || '',
-      ]
-        .join(' ')
-        .toLowerCase()
-
-      return haystack.includes(keyword)
-    })
-  }, [purchaseData, debouncedSearch])
+  }, [debouncedSearch, supplierIdFilter, paymentStatusFilter, fromDateFilter, toDateFilter])
 
   const purchases = useMemo(() => {
     const start = (page - 1) * limit
-    return filteredPurchases.slice(start, start + limit)
-  }, [filteredPurchases, page])
+    return purchaseData.slice(start, start + limit)
+  }, [purchaseData, page])
 
   const pagination = {
     currentPage: page,
-    totalPages: Math.max(1, Math.ceil(filteredPurchases.length / limit)),
-    hasNextPage: page * limit < filteredPurchases.length,
+    totalPages: Math.max(1, Math.ceil(purchaseData.length / limit)),
+    hasNextPage: page * limit < purchaseData.length,
     hasPreviousPage: page > 1,
   }
 
+  const supplierBreakdown = apiSummary?.bySupplier || []
+  const supplierFilterOptions = supplierBreakdown.filter((sup) => Boolean(sup.supplierId))
+  const hasFilters =
+    Boolean(debouncedSearch) ||
+    Boolean(supplierIdFilter) ||
+    Boolean(paymentStatusFilter) ||
+    Boolean(fromDateFilter) ||
+    Boolean(toDateFilter)
+
   const summary = {
-    total: filteredPurchases.length,
+    total: Number(apiSummary?.showingPurchases ?? purchaseData.length),
     showing: purchases.length,
     activePage: pagination.currentPage,
     totalPages: pagination.totalPages,
+    purchaseValue: Number(apiSummary?.totalPurchaseAmount ?? apiSummary?.totalValue ?? 0),
+    paidValue: Number(apiSummary?.totalPaidAmount ?? apiSummary?.totalPaid ?? 0),
+    dueValue: Number(apiSummary?.totalDueAmount ?? apiSummary?.totalDue ?? 0),
   }
 
   const purchaseColumns = [
@@ -160,56 +209,104 @@ function Purchase() {
       render: (p: any) => p.invoiceNumber || '-',
     },
     {
-      key: 'supplier',
-      header: 'Supplier',
-      width: '200px',
-      render: (p: any) => p.supplierId?.name || p.supplierName || 'Walk-in / No Supplier',
-    },
-    {
       key: 'purchaseDate',
       header: 'Purchase Date',
-      width: '160px',
+      width: '140px',
       render: (p: any) =>
         p.purchaseDate ? new Date(p.purchaseDate).toLocaleDateString('en-IN') : '-',
     },
     {
+      key: 'updatedAt',
+      header: 'Updated At',
+      width: '140px',
+      render: (p: any) =>
+        p.updatedAt
+          ? new Date(p.updatedAt).toLocaleTimeString('en-IN', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : '-',
+    },
+    {
+      key: 'supplier',
+      header: 'Supplier Name',
+      width: '180px',
+      render: (p: any) => p.supplierId?.name || p.supplierName || 'Walk-in / No Supplier',
+    },
+    {
+      key: 'supplierMobile',
+      header: 'Supplier Mobile',
+      width: '150px',
+      render: (p: any) => p.supplierId?.mobileNumber || '-',
+    },
+    {
+      key: 'supplierPending',
+      header: 'Supplier Pending',
+      width: '150px',
+      render: (p: any) =>
+        p.supplierId?.pendingAmount !== undefined
+          ? formatCurrency(p.supplierId.pendingAmount)
+          : '-',
+    },
+    {
       key: 'items',
-      header: 'Items',
-      width: '90px',
-      render: (p: any) => p.items?.length ?? 0,
+      header: 'Products',
+      width: '220px',
+      render: (p: any) => getItemSummary(p),
+    },
+    {
+      key: 'itemCount',
+      header: 'Item Lines',
+      width: '100px',
+      render: (p: any) => Number(p.items?.length || 0),
+    },
+    {
+      key: 'totalQuantity',
+      header: 'Total Qty',
+      width: '100px',
+      render: (p: any) => getItemTotals(p).quantity,
+    },
+    {
+      key: 'discountTotal',
+      header: 'Discount',
+      width: '120px',
+      render: (p: any) => formatCurrency(getItemTotals(p).discount),
+    },
+    {
+      key: 'gstTotal',
+      header: 'GST',
+      width: '110px',
+      render: (p: any) => formatCurrency(getItemTotals(p).gst),
+    },
+    {
+      key: 'cgstTotal',
+      header: 'CGST',
+      width: '110px',
+      render: (p: any) => formatCurrency(getItemTotals(p).cgst),
+    },
+    {
+      key: 'sgstTotal',
+      header: 'SGST',
+      width: '110px',
+      render: (p: any) => formatCurrency(getItemTotals(p).sgst),
     },
     {
       key: 'totalAmount',
       header: 'Total',
       width: '130px',
-      render: (p: any) =>
-        new Intl.NumberFormat('en-IN', {
-          style: 'currency',
-          currency: 'INR',
-          maximumFractionDigits: 0,
-        }).format(Number(p.totalAmount || 0)),
+      render: (p: any) => formatCurrency(Number(p.totalAmount || 0)),
     },
     {
       key: 'paidAmount',
       header: 'Paid',
       width: '130px',
-      render: (p: any) =>
-        new Intl.NumberFormat('en-IN', {
-          style: 'currency',
-          currency: 'INR',
-          maximumFractionDigits: 0,
-        }).format(Number(p.paidAmount || 0)),
+      render: (p: any) => formatCurrency(Number(p.paidAmount || 0)),
     },
     {
       key: 'dueAmount',
       header: 'Due',
       width: '130px',
-      render: (p: any) =>
-        new Intl.NumberFormat('en-IN', {
-          style: 'currency',
-          currency: 'INR',
-          maximumFractionDigits: 0,
-        }).format(Number(p.dueAmount || 0)),
+      render: (p: any) => formatCurrency(Number(p.dueAmount || 0)),
     },
     {
       key: 'paymentStatus',
@@ -224,6 +321,12 @@ function Purchase() {
           {String(p.paymentStatus || '-').toUpperCase()}
         </Badge>
       ),
+    },
+    {
+      key: 'note',
+      header: 'Note',
+      width: '220px',
+      render: (p: any) => p.note?.trim() || '-',
     },
   ]
 
@@ -269,7 +372,7 @@ function Purchase() {
         <SimpleGrid columns={{ base: 2, md: 4 }} gap={3}>
           <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
-              Total
+              Showing Purchases
             </Text>
             <Text mt={1} fontSize="xl" fontWeight="800" color="gray.900">
               {summary.total}
@@ -277,82 +380,254 @@ function Purchase() {
           </Box>
           <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
-              Showing
+              Total Value
             </Text>
             <Text mt={1} fontSize="xl" fontWeight="800" color="gray.900">
-              {summary.showing}
+              {formatCurrency(summary.purchaseValue)}
             </Text>
           </Box>
           <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
-              Page
+              Total Paid
             </Text>
             <Text mt={1} fontSize="xl" fontWeight="800" color="gray.900">
-              {summary.activePage}
+              {formatCurrency(summary.paidValue)}
             </Text>
           </Box>
           <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
             <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
-              Total Pages
+              Total Due
             </Text>
             <Text mt={1} fontSize="xl" fontWeight="800" color="gray.900">
-              {summary.totalPages}
+              {formatCurrency(summary.dueValue)}
             </Text>
           </Box>
         </SimpleGrid>
 
-        <Flex
-          justify="space-between"
-          align={{ base: 'stretch', md: 'center' }}
+        <Box
           mt={4}
-          w="100%"
-          gap={4}
-          direction={{ base: 'column', md: 'row' }}
+          bg="rgba(255,255,255,0.92)"
+          border="1px solid"
+          borderColor="gray.200"
+          borderRadius="18px"
+          p={{ base: 3, md: 4 }}
+          boxShadow="0 8px 24px rgba(15, 23, 42, 0.06)"
         >
-          <HStack gap={2} align="center" flexWrap="wrap">
-            <ExpandableSearch
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search purchases..."
-              expandedWidth="300px"
-            />
-          </HStack>
+          <Flex
+            justify="space-between"
+            align={{ base: 'stretch', lg: 'center' }}
+            gap={4}
+            direction={{ base: 'column', lg: 'row' }}
+          >
+            <VStack gap={3} align="stretch" flex="1">
+              <Text
+                fontSize="xs"
+                fontWeight="700"
+                letterSpacing="0.08em"
+                textTransform="uppercase"
+                color="gray.600"
+              >
+                Search & Filters
+              </Text>
 
-          <HStack gap={2}>
-            <Button
-              bg="gray.950"
-              color="white"
-              h="38px"
-              px={4}
-              _hover={{ bg: 'gray.800' }}
-              onClick={() => setCreateOpen(true)}
-            >
-              <HStack gap={1.5}>
-                <Plus size={18} />
-                <Text fontSize="sm" fontWeight="700">
-                  Add Purchase
-                </Text>
-              </HStack>
-            </Button>
+              <HStack gap={2} align="center" flexWrap="wrap">
+                <ExpandableSearch
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search invoice or supplier..."
+                  expandedWidth="300px"
+                />
 
-            <Button
-              bg="green.600"
-              color="white"
-              h="38px"
-              px={3}
-              isLoading={isExporting}
-              _hover={{ bg: 'green.700' }}
-              onClick={handleExport}
-            >
-              <HStack gap={1}>
-                <Download size={16} />
-                <Text fontSize="sm" fontWeight="700">
-                  Export
-                </Text>
+                <select
+                  style={{
+                    height: '38px',
+                    minWidth: '210px',
+                    padding: '0 12px',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '10px',
+                    background: 'white',
+                  }}
+                  value={supplierIdFilter}
+                  onChange={(e) => setSupplierIdFilter(e.target.value)}
+                >
+                  <option value="">All Suppliers</option>
+                  {supplierFilterOptions.map((sup, idx) => (
+                    <option key={`${sup.supplierId}-${idx}`} value={sup.supplierId || ''}>
+                      {sup.supplierName}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  style={{
+                    height: '38px',
+                    minWidth: '170px',
+                    padding: '0 12px',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '10px',
+                    background: 'white',
+                  }}
+                  value={paymentStatusFilter}
+                  onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                >
+                  <option value="">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="partial">Partial</option>
+                  <option value="paid">Paid</option>
+                  <option value="advance">Advance</option>
+                </select>
               </HStack>
-            </Button>
-          </HStack>
-        </Flex>
+
+              <HStack
+                gap={2}
+                p={2}
+                border="1px solid"
+                borderColor="gray.200"
+                borderRadius="12px"
+                bg="gray.50"
+                flexWrap="wrap"
+              >
+                <Text fontSize="xs" color="gray.600" fontWeight="700" px={1}>
+                  Date Range
+                </Text>
+
+                <HStack
+                  bg="white"
+                  border="1px solid"
+                  borderColor="gray.200"
+                  borderRadius="10px"
+                  px={2}
+                >
+                  <Input
+                    ref={fromDateRef}
+                    type="date"
+                    h="34px"
+                    border="none"
+                    bg="transparent"
+                    minW="150px"
+                    value={fromDateFilter}
+                    onChange={(e) => setFromDateFilter(e.target.value)}
+                    _focusVisible={{ boxShadow: 'none' }}
+                  />
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    color="gray.600"
+                    onClick={() => {
+                      const el = fromDateRef.current as
+                        | (HTMLInputElement & { showPicker?: () => void })
+                        | null
+                      el?.showPicker?.()
+                      if (!el?.showPicker) {
+                        el?.click()
+                      }
+                    }}
+                    aria-label="Open start date calendar"
+                  >
+                    <CalendarDays size={14} />
+                  </Button>
+                </HStack>
+
+                <Text fontSize="sm" color="gray.500">
+                  to
+                </Text>
+
+                <HStack
+                  bg="white"
+                  border="1px solid"
+                  borderColor="gray.200"
+                  borderRadius="10px"
+                  px={2}
+                >
+                  <Input
+                    ref={toDateRef}
+                    type="date"
+                    h="34px"
+                    border="none"
+                    bg="transparent"
+                    minW="150px"
+                    value={toDateFilter}
+                    onChange={(e) => setToDateFilter(e.target.value)}
+                    _focusVisible={{ boxShadow: 'none' }}
+                  />
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    color="gray.600"
+                    onClick={() => {
+                      const el = toDateRef.current as
+                        | (HTMLInputElement & { showPicker?: () => void })
+                        | null
+                      el?.showPicker?.()
+                      if (!el?.showPicker) {
+                        el?.click()
+                      }
+                    }}
+                    aria-label="Open end date calendar"
+                  >
+                    <CalendarDays size={14} />
+                  </Button>
+                </HStack>
+
+                <Button
+                  h="34px"
+                  px={3}
+                  size="sm"
+                  variant="outline"
+                  borderColor="gray.300"
+                  onClick={() => {
+                    setSupplierIdFilter('')
+                    setPaymentStatusFilter('')
+                    setFromDateFilter('')
+                    setToDateFilter('')
+                    setSearch('')
+                  }}
+                  disabled={!hasFilters}
+                >
+                  <HStack gap={1}>
+                    <FilterX size={14} />
+                    <Text fontSize="xs">Clear</Text>
+                  </HStack>
+                </Button>
+              </HStack>
+            </VStack>
+
+            <HStack gap={2} alignSelf={{ base: 'flex-end', lg: 'center' }}>
+              <Button
+                bg="gray.950"
+                color="white"
+                h="38px"
+                px={4}
+                _hover={{ bg: 'gray.800' }}
+                onClick={() => setCreateOpen(true)}
+              >
+                <HStack gap={1.5}>
+                  <Plus size={18} />
+                  <Text fontSize="sm" fontWeight="700">
+                    Add Purchase
+                  </Text>
+                </HStack>
+              </Button>
+
+              <Button
+                bg="green.600"
+                color="white"
+                h="38px"
+                px={3}
+                loading={isExporting}
+                _hover={{ bg: 'green.700' }}
+                onClick={handleExport}
+              >
+                <HStack gap={1}>
+                  <Download size={16} />
+                  <Text fontSize="sm" fontWeight="700">
+                    Export
+                  </Text>
+                </HStack>
+              </Button>
+            </HStack>
+          </Flex>
+        </Box>
 
         <Box
           bg="rgba(255,255,255,0.86)"
@@ -371,7 +646,7 @@ function Purchase() {
             rowKey={(p) => p._id}
             actions={purchaseActions}
             emptyMessage={
-              debouncedSearch ? 'No purchases match your search.' : 'No purchases found.'
+              hasFilters ? 'No purchases match selected filters.' : 'No purchases found.'
             }
           />
         </Box>
@@ -431,7 +706,7 @@ function Purchase() {
           </HStack>
 
           <Text fontSize="xs" color="gray.600">
-            Showing {purchases.length} of {filteredPurchases.length} purchases
+            Showing {purchases.length} of {purchaseData.length} purchases
           </Text>
         </VStack>
       </Flex>

@@ -35,9 +35,52 @@ export type PaymentRecord = {
   updatedAt?: string
 }
 
-const getPayments = async (): Promise<PaymentRecord[]> => {
+export type WalkInSupplierDueRow = {
+  supplierName: string
+  dueAmount: number
+}
+
+export type PaymentListResponse = {
+  payments: PaymentRecord[]
+  walkInSupplierPayments: PaymentRecord[]
+  walkInSupplierPaymentsCount: number
+  totalWalkInSupplierPaid: number
+  walkInSupplierDueAmount: number
+  walkInSupplierDueBreakdown: WalkInSupplierDueRow[]
+}
+
+const EMPTY_PAYMENT_LIST: PaymentListResponse = {
+  payments: [],
+  walkInSupplierPayments: [],
+  walkInSupplierPaymentsCount: 0,
+  totalWalkInSupplierPaid: 0,
+  walkInSupplierDueAmount: 0,
+  walkInSupplierDueBreakdown: [],
+}
+
+const getPayments = async (): Promise<PaymentListResponse> => {
   const res = await API.get(API_ENDPOINTS.PAYMENT.BASE)
-  return res.data?.data || []
+  const payload = res.data?.data || res.data || {}
+
+  if (Array.isArray(payload)) {
+    return {
+      ...EMPTY_PAYMENT_LIST,
+      payments: payload,
+    }
+  }
+
+  if (Array.isArray(payload?.payments)) {
+    return {
+      payments: payload.payments,
+      walkInSupplierPayments: payload.walkInSupplierPayments || [],
+      walkInSupplierPaymentsCount: Number(payload.walkInSupplierPaymentsCount || 0),
+      totalWalkInSupplierPaid: Number(payload.totalWalkInSupplierPaid || 0),
+      walkInSupplierDueAmount: Number(payload.walkInSupplierDueAmount || 0),
+      walkInSupplierDueBreakdown: payload.walkInSupplierDueBreakdown || [],
+    }
+  }
+
+  return EMPTY_PAYMENT_LIST
 }
 
 export type PartyDueRow = {
@@ -59,6 +102,23 @@ export type PaymentDuesResponse = {
 }
 
 export type PaymentSummary = {
+  customer?: {
+    receivableAmount?: number
+    advanceAmount?: number
+    dueCount?: number
+    advanceCount?: number
+  }
+  supplier?: {
+    payableAmount?: number
+    advancePaidAmount?: number
+    dueCount?: number
+    advanceCount?: number
+    walkInDueAmount?: number
+    walkInAdvanceAmount?: number
+    walkInDueCount?: number
+    walkInAdvanceCount?: number
+  }
+  netOutstanding?: number
   totalPayments: number
   totalAmount: number
   totalFromCustomers: number
@@ -154,6 +214,9 @@ const getPaymentSummary = async (): Promise<PaymentSummary> => {
   const supplier = raw?.supplier || {}
 
   return {
+    customer,
+    supplier,
+    netOutstanding: pickNumber(raw, ['netOutstanding']),
     totalPayments: pickNumber(raw, ['totalPayments', 'count', 'totalCount', 'paymentsCount']),
     totalAmount:
       pickNumber(raw, ['totalAmount', 'amount', 'total', 'grossAmount']) ||

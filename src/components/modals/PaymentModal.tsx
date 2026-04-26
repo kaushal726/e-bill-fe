@@ -25,6 +25,7 @@ import { ToasterUtil } from '@/components/common/ToasterUtil'
 type PaymentType = 'supplier' | 'customer'
 type PaymentMode = 'cash' | 'upi' | 'bank' | 'other'
 type PartyMode = 'registered' | 'anonymous'
+const WALKIN_SUPPLIER_NAME = 'Walk-in / Unknown'
 
 interface PaymentModalProps {
   open: boolean
@@ -64,7 +65,7 @@ export default function PaymentModal({
   useEffect(() => {
     if (open) {
       setPaidToType(defaultType ?? 'supplier')
-      setPartyMode(defaultEntityId ? 'registered' : 'anonymous')
+      setPartyMode('registered')
       setEntityId(defaultEntityId ?? '')
       setPartyName('')
       setInvoiceRef('')
@@ -73,6 +74,17 @@ export default function PaymentModal({
       setNote('')
     }
   }, [open, defaultType, defaultEntityId])
+
+  useEffect(() => {
+    if (partyMode === 'anonymous' && paidToType === 'supplier') {
+      setPartyName(WALKIN_SUPPLIER_NAME)
+      return
+    }
+
+    if (partyMode === 'registered') {
+      setPartyName('')
+    }
+  }, [partyMode, paidToType])
 
   const typeCollection = useMemo(
     () =>
@@ -195,7 +207,7 @@ export default function PaymentModal({
 
     if (paidToType === 'supplier') {
       if (partyMode === 'registered') payload.supplierId = entityId
-      else payload.supplierName = normalizedPartyName
+      else payload.supplierName = WALKIN_SUPPLIER_NAME
     } else {
       if (customerFromInvoice?.customerId) {
         payload.customerId = customerFromInvoice.customerId
@@ -254,6 +266,7 @@ export default function PaymentModal({
                   value={[paidToType]}
                   onValueChange={(e) => {
                     setPaidToType(e.value[0] as PaymentType)
+                    setPartyMode('registered')
                     setEntityId('')
                   }}
                   positioning={{ strategy: 'fixed', hideWhenDetached: true }}
@@ -368,11 +381,12 @@ export default function PaymentModal({
                     onChange={(e) => setPartyName(e.target.value)}
                     placeholder={
                       paidToType === 'supplier'
-                        ? 'Enter random supplier name'
+                        ? WALKIN_SUPPLIER_NAME
                         : 'Enter walk-in customer name'
                     }
                     bg="white"
                     borderColor="gray.200"
+                    readOnly={paidToType === 'supplier'}
                   />
                 )}
               </Field.Root>

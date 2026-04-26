@@ -43,7 +43,8 @@ const Payments = () => {
   const [page, setPage] = useState(1)
   const limit = 20
 
-  const { data: paymentData = [], isLoading } = usePayment()
+  const { data: paymentResponse, isLoading } = usePayment()
+  const paymentData = paymentResponse?.payments || []
   const { data: paymentSummary } = usePaymentSummary()
 
   useEffect(() => {
@@ -171,11 +172,7 @@ const Payments = () => {
       key: 'note',
       header: 'Note',
       width: '150px',
-      render: (p: any) => (
-        <Text fontSize="sm" noOfLines={1}>
-          {p.note || '-'}
-        </Text>
-      ),
+      render: (p: any) => <Text fontSize="sm">{p.note || '-'}</Text>,
     },
   ]
 
@@ -264,6 +261,49 @@ const Payments = () => {
             </Text>
             <Text mt={1} fontSize="lg" fontWeight="700" color="gray.900">
               {paymentSummary?.supplierPaymentsCount ?? 0}
+            </Text>
+          </Box>
+        </SimpleGrid>
+
+        <SimpleGrid columns={{ base: 1, md: 3 }} gap={3} mt={3}>
+          <Box bg="white" border="1px solid" borderColor="orange.100" borderRadius="16px" p={3}>
+            <Text fontSize="xs" color="orange.500" textTransform="uppercase" letterSpacing="0.06em">
+              Walk-in Supplier Due
+            </Text>
+            <Text mt={1} fontSize="lg" fontWeight="700" color="orange.600">
+              {new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                maximumFractionDigits: 0,
+              }).format(
+                Number(
+                  paymentResponse?.walkInSupplierDueAmount ??
+                    paymentSummary?.supplier?.walkInDueAmount ??
+                    0,
+                ),
+              )}
+            </Text>
+          </Box>
+
+          <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="16px" p={3}>
+            <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="0.06em">
+              Walk-in Supplier Payments
+            </Text>
+            <Text mt={1} fontSize="lg" fontWeight="700" color="gray.900">
+              {paymentResponse?.walkInSupplierPaymentsCount ?? 0}
+            </Text>
+          </Box>
+
+          <Box bg="white" border="1px solid" borderColor="green.100" borderRadius="16px" p={3}>
+            <Text fontSize="xs" color="green.500" textTransform="uppercase" letterSpacing="0.06em">
+              Walk-in Supplier Paid
+            </Text>
+            <Text mt={1} fontSize="lg" fontWeight="700" color="green.600">
+              {new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                maximumFractionDigits: 0,
+              }).format(Number(paymentResponse?.totalWalkInSupplierPaid ?? 0))}
             </Text>
           </Box>
         </SimpleGrid>

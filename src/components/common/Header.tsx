@@ -15,11 +15,11 @@ export const Header = () => {
 
   return (
     <Box
-      px={{ base: 4, md: 6 }}
+      px={{ base: 4, md: 5 }}
       py={{ base: 0, md: 0 }}
-      bg="#c7d2cc"
+      bg="white"
       borderBottomWidth="1px"
-      borderColor="#a7b7af"
+      borderColor="gray.200"
       position="sticky"
       top={0}
       zIndex={999}
@@ -33,37 +33,29 @@ export const Header = () => {
         align="center"
         justify="space-between"
         direction="row"
-        gap={{ base: 2, lg: 4 }}
-        minH={{ base: '60px', md: '82px' }}
-        px={{ base: 2.5, md: 6 }}
-        py={{ base: 2, md: 3.5 }}
+        gap={{ base: 2, lg: 3 }}
+        minH={{ base: '56px', md: '64px' }}
+        px={{ base: 2.5, md: 4 }}
+        py={{ base: 1.5, md: 2 }}
         position="relative"
       >
         <HStack align="center" gap={{ base: 2, md: 4 }} flex="1" minW={0}>
-          <Box
-            width="4px"
-            borderRadius="full"
-            bg="#4f6f68"
-            alignSelf="stretch"
-            minH={{ base: '28px', md: '48px' }}
-          />
-
           <Stack gap={0.5} flex="1" minW={0} justify="center">
             <Text
-              display={{ base: 'none', md: 'block' }}
-              fontSize="11px"
+              display={{ base: 'none', lg: 'block' }}
+              fontSize="10px"
               fontWeight="700"
-              color="#5a746c"
+              color="gray.500"
               textTransform="uppercase"
-              letterSpacing="0.14em"
+              letterSpacing="0.12em"
             >
               Workspace
             </Text>
             <Text
-              fontSize={{ base: 'lg', md: '2xl' }}
+              fontSize={{ base: 'md', md: 'xl' }}
               fontWeight="700"
-              color="#223530"
-              lineHeight="1.1"
+              color="black"
+              lineHeight="1.05"
               letterSpacing="-0.03em"
               whiteSpace="nowrap"
               overflow="hidden"
@@ -72,9 +64,9 @@ export const Header = () => {
               {title}
             </Text>
             <Text
-              display={{ base: 'none', md: 'block' }}
-              fontSize="sm"
-              color="#49615c"
+              display={{ base: 'none', lg: 'block' }}
+              fontSize="xs"
+              color="gray.600"
               maxW="760px"
               overflow="hidden"
               textOverflow="ellipsis"
@@ -91,27 +83,27 @@ export const Header = () => {
               <Box as="span">
                 <HStack
                   gap={{ base: 0, md: 2.5 }}
-                  px={{ base: 0, md: 3.5 }}
-                  py={{ base: 0, md: 2.5 }}
-                  borderRadius={{ base: 'full', md: '18px' }}
-                  bg="#d8e0db"
+                  px={{ base: 0, md: 2.5 }}
+                  py={{ base: 0, md: 1.5 }}
+                  borderRadius={{ base: 'full', md: '14px' }}
+                  bg="gray.50"
                   border={{ base: 'none', md: '1px solid' }}
-                  borderColor="#aebdb6"
+                  borderColor="gray.200"
                   boxShadow={{ base: 'none', md: '0 1px 0 rgba(255,255,255,0.35) inset' }}
                   cursor="pointer"
                 >
-                  <Avatar.Root size="sm" bg="#5e7b74" color="white">
+                  <Avatar.Root size="sm" bg="black" color="white">
                     <Avatar.Fallback>{profile?.firstName?.[0] ?? 'U'}</Avatar.Fallback>
                   </Avatar.Root>
                   <VStack align="start" gap={0} hideBelow="md">
-                    <Text fontSize="sm" fontWeight="700" color="#223530" lineHeight="1.1">
+                    <Text fontSize="xs" fontWeight="700" color="black" lineHeight="1.1">
                       {userName}
                     </Text>
                     <Text
-                      fontSize="12px"
-                      color="#58716a"
+                      fontSize="11px"
+                      color="gray.600"
                       lineHeight="1.1"
-                      maxW="190px"
+                      maxW="160px"
                       overflow="hidden"
                       textOverflow="ellipsis"
                       whiteSpace="nowrap"

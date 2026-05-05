@@ -27,7 +27,7 @@ import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useForm } from 'react-hook-form'
 import { AxiosError } from 'axios'
-import { Plus, Trash2, Copy, Building2, Check } from 'lucide-react'
+import { Plus, Trash2, Copy, Building2, Check, CalendarClock } from 'lucide-react'
 import type { BankAccount } from '@/hooks/useProfileActions'
 
 type ProfileFormValues = {
@@ -38,6 +38,70 @@ type ProfileFormValues = {
   gstin: string
   address: string
   pincode: string
+}
+
+function SubscriptionExpiryCard({
+  subscription,
+}: {
+  subscription: { isActive: boolean; expiresAt: string } | null
+}) {
+  if (!subscription) return null
+
+  const expiresAt = new Date(subscription.expiresAt)
+  const now = new Date()
+  const daysLeft = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+  const isExpired = daysLeft <= 0
+  const isUrgent = !isExpired && daysLeft <= 7
+  const isWarning = !isExpired && daysLeft <= 30
+
+  const bg = isExpired
+    ? 'linear-gradient(135deg, #fef2f2 0%, #ffffff 100%)'
+    : isUrgent
+      ? 'linear-gradient(135deg, #fff7ed 0%, #ffffff 100%)'
+      : 'linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%)'
+  const borderColor = isExpired ? 'red.200' : isUrgent ? 'orange.200' : 'green.200'
+  const iconColor = isExpired ? '#dc2626' : isUrgent ? '#ea580c' : '#16a34a'
+  const labelColor = isExpired ? 'red.700' : isUrgent ? 'orange.700' : 'green.700'
+
+  return (
+    <Box w="full" p={4} borderRadius="22px" bg={bg} border="1px solid" borderColor={borderColor}>
+      <HStack justify="space-between" mb={2}>
+        <HStack gap={2}>
+          <CalendarClock size={14} color={iconColor} />
+          <Text fontSize="xs" textTransform="uppercase" letterSpacing="0.12em" color={labelColor}>
+            Subscription
+          </Text>
+        </HStack>
+        <Badge
+          borderRadius="full"
+          px={2}
+          py={0.5}
+          bg={isExpired ? 'red.100' : isUrgent ? 'orange.100' : 'green.100'}
+          color={isExpired ? 'red.700' : isUrgent ? 'orange.700' : 'green.700'}
+          fontSize="xs"
+          fontWeight="700"
+        >
+          {isExpired ? 'Expired' : subscription.isActive ? 'Active' : 'Inactive'}
+        </Badge>
+      </HStack>
+
+      <Text mt={1} fontWeight="700" color="gray.900" fontSize="sm">
+        {isExpired
+          ? `Expired ${Math.abs(daysLeft)} day${Math.abs(daysLeft) !== 1 ? 's' : ''} ago`
+          : `${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining`}
+      </Text>
+      <Text fontSize="xs" color="gray.500" mt={0.5}>
+        Expires{' '}
+        {expiresAt.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+      </Text>
+
+      {isWarning && !isExpired && (
+        <Text mt={2} fontSize="xs" color={isUrgent ? 'orange.600' : 'yellow.700'} fontWeight="600">
+          {isUrgent ? '⚠ Renew soon to avoid disruption.' : 'Subscription expiring this month.'}
+        </Text>
+      )}
+    </Box>
+  )
 }
 
 const emptyBank: BankAccount = {
@@ -370,6 +434,9 @@ function Profile() {
                     </Badge>
                   </HStack>
                 )}
+
+                {/* Subscription expiry */}
+                <SubscriptionExpiryCard subscription={(data as any).subscription} />
               </VStack>
             </Box>
 

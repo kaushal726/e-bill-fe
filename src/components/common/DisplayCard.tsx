@@ -38,10 +38,6 @@ const DisplayCard = ({
       overflow="hidden"
       p={4}
       transition="all 0.2s ease-in-out"
-      _hover={{
-        transform: 'scale(1.02)',
-        shadow: 'lightGray',
-      }}
     >
       <Card.Body p={0}>
         <Card.Title mb="2">{title}</Card.Title>

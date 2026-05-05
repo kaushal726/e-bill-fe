@@ -209,12 +209,12 @@ export default function CustomerDialog({
             >
               <Dialog.ActionTrigger asChild>
                 <Button
-                  variant="subtle"
                   minW="120px"
                   width={{ base: '100%', md: '50%' }}
-                  color="black"
-                  borderColor="black"
                   bg="white"
+                  color="gray.800"
+                  border="1px solid"
+                  borderColor="gray.200"
                 >
                   Cancel
                 </Button>

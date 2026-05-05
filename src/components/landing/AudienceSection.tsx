@@ -101,10 +101,6 @@ export function AudienceSection() {
                     shadow="sm"
                     h="100%"
                     transition="all 0.3s"
-                    _hover={{
-                      borderColor: 'purple.500',
-                      shadow: 'lg',
-                    }}
                   >
                     <VStack gap={4} align="center">
                       {/* Icon */}

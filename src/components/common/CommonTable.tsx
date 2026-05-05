@@ -131,7 +131,6 @@ export function CommonTable<T>({
                   bg="white"
                   borderBottom="1px solid"
                   borderColor="teal.50"
-                  _hover={{ bg: 'teal.50' }}
                 >
                   {columns.map((c) => (
                     <Table.Cell
@@ -166,13 +165,11 @@ export function CommonTable<T>({
                             key={i}
                             onClick={() => action.onClick(row)}
                             size="xs"
-                            variant="subtle"
                             bg="teal.50"
                             color={action.color || '#0f766e'}
                             border="1px solid"
                             borderColor="teal.100"
                             borderRadius="10px"
-                            _hover={{ bg: 'teal.100', borderColor: 'teal.200' }}
                             aria-label={action.label}
                             title={action.label}
                           >

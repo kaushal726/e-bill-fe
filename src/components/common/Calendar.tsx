@@ -35,7 +35,6 @@ export function Calendar({ value, onChange }: CalendarProps) {
           size="sm"
           variant="solid"
           color="gray.700"
-          _hover={{ bg: 'gray.200' }}
           onClick={() => setCurrent(new Date(year, month - 1, 1))}
         >
           <ChevronLeft size={16} />
@@ -53,7 +52,6 @@ export function Calendar({ value, onChange }: CalendarProps) {
           variant="solid"
           color="gray.700"
           onClick={() => setCurrent(new Date(year, month + 1, 1))}
-          _hover={{ bg: 'gray.200' }}
         >
           <ChevronRight size={16} />
         </Button>
@@ -84,9 +82,6 @@ export function Calendar({ value, onChange }: CalendarProps) {
               variant={selected ? 'solid' : 'ghost'}
               colorPalette={selected ? 'blue' : undefined}
               color={selected ? 'white' : 'gray.800'} // 🔑
-              _hover={{
-                bg: selected ? 'blue.600' : 'gray.100',
-              }}
             >
               {day}
             </Button>

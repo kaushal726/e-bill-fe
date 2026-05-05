@@ -141,7 +141,6 @@ export const SideBar = () => {
               color="white"
               border="1px solid"
               borderColor="whiteAlpha.300"
-              _hover={{ bg: 'whiteAlpha.300' }}
               onClick={handleLogout}
             >
               Logout
@@ -173,7 +172,6 @@ export const SideBar = () => {
               borderColor="whiteAlpha.300"
               borderLeft="none"
               boxShadow="0 10px 24px rgba(15,23,42,0.22)"
-              _hover={{ bg: 'rgba(30,41,59,0.96)' }}
               _active={{ bg: 'rgba(30,41,59,1)' }}
               aria-label="Open navigation menu"
               touchAction="none"
@@ -252,7 +250,6 @@ export const SideBar = () => {
                       color="white"
                       border="1px solid"
                       borderColor="whiteAlpha.300"
-                      _hover={{ bg: 'whiteAlpha.300' }}
                       onClick={handleLogout}
                     >
                       Logout
@@ -272,7 +269,6 @@ export const SideBar = () => {
                     right="4"
                     borderRadius="full"
                     bg="whiteAlpha.100"
-                    _hover={{ bg: 'whiteAlpha.200' }}
                   />
                 </Drawer.CloseTrigger>
               </Drawer.Content>

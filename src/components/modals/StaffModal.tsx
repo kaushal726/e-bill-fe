@@ -192,11 +192,12 @@ export default function StaffDialog({
             <Dialog.Footer gap={3} justifyContent="flex-end">
               <Dialog.ActionTrigger asChild>
                 <Button
-                  variant="subtle"
                   minW="120px"
                   width="50%"
-                  color="gray.700"
-                  borderColor="gray.300"
+                  bg="white"
+                  color="gray.800"
+                  border="1px solid"
+                  borderColor="gray.200"
                 >
                   Cancel
                 </Button>

@@ -148,11 +148,13 @@ function PriceList() {
         <Button
           onClick={() => setPage(pagination.currentPage - 1)}
           disabled={!pagination.hasPreviousPage}
-          variant="subtle"
           bg="white"
+          color="gray.800"
+          border="1px solid"
+          borderColor="gray.200"
           rounded="lg"
         >
-          <Text color="gray.800">Previous</Text>
+          Previous
         </Button>
 
         <HStack gap={2}>
@@ -165,7 +167,6 @@ function PriceList() {
                 rounded="lg"
                 bg={pg === pagination.currentPage ? 'purple.100' : 'transparent'}
                 color={pg === pagination.currentPage ? 'purple.600' : 'gray.700'}
-                _hover={{ bg: 'purple.50' }}
               >
                 {pg}
               </Button>
@@ -176,11 +177,13 @@ function PriceList() {
         <Button
           onClick={() => setPage(pagination.currentPage + 1)}
           disabled={!pagination.hasNextPage}
-          variant="subtle"
           bg="white"
+          color="gray.800"
+          border="1px solid"
+          borderColor="gray.200"
           rounded="lg"
         >
-          <Text color="gray.800">Next</Text>
+          Next
         </Button>
       </Flex>
     </Flex>

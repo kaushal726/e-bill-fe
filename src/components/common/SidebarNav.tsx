@@ -9,6 +9,7 @@ import {
   MdCategory,
   MdInventory,
   MdSpaceDashboard,
+  MdBrandingWatermark,
 } from 'react-icons/md'
 import { RxBox, RxGear, RxPerson } from 'react-icons/rx'
 
@@ -30,6 +31,7 @@ const sections = [
     items: [
       { label: 'Products', path: '/products', icon: RxBox },
       { label: 'Category', path: '/category', icon: MdCategory },
+      { label: 'Brands', path: '/brands', icon: MdBrandingWatermark },
       { label: 'Suppliers', path: '/suppliers', icon: FiTruck },
       { label: 'Purchase', path: '/purchase', icon: FiShoppingCart },
       { label: 'Stock', path: '/stocks', icon: MdInventory },
@@ -61,7 +63,6 @@ export const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
             border="1px solid"
             borderColor={isActive ? 'whiteAlpha.300' : 'transparent'}
             color="white"
-            _hover={{ bg: 'whiteAlpha.200' }}
           >
             <MdSpaceDashboard size={16} color="white" />
             <Text fontSize="sm" fontWeight={isActive ? '700' : '500'} color="white">
@@ -97,7 +98,6 @@ export const SidebarNav = ({ onNavigate }: { onNavigate?: () => void }) => {
                       border="1px solid"
                       borderColor={isActive ? 'whiteAlpha.300' : 'transparent'}
                       color="white"
-                      _hover={{ bg: 'whiteAlpha.200' }}
                     >
                       {item.icon && <item.icon size={16} />}
                       <Text fontSize="sm" fontWeight={isActive ? '700' : '500'}>

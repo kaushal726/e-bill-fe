@@ -79,11 +79,23 @@ export default function AdaptiveModal({
             </Text>
 
             <HStack gap={2}>
-              <Button size="sm" variant="subtle">
+              <Button
+                size="sm"
+                bg="white"
+                color="gray.800"
+                border="1px solid"
+                borderColor="gray.200"
+              >
                 Add Custom Field
               </Button>
 
-              <Button size="sm" variant="subtle">
+              <Button
+                size="sm"
+                bg="white"
+                color="gray.800"
+                border="1px solid"
+                borderColor="gray.200"
+              >
                 Bulk Upload
               </Button>
 

@@ -3,6 +3,9 @@ import { useEffect, useRef, useState } from 'react'
 import { Plus, RefreshCw } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { useQueryClient } from '@tanstack/react-query'
+import { API } from '@/api/api'
+import { API_ENDPOINTS } from '@/api/apiEndpoints'
+import { toaster } from '@/components/ui/toaster'
 
 import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 import { TableActionsPopover } from '@/components/popovers/TableActionsPopover'
@@ -164,6 +167,23 @@ function Categories() {
     })
   }
 
+  const handleDownloadTemplate = async () => {
+    try {
+      const res = await API.get(API_ENDPOINTS.CATEGORY.TEMPLATE, { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([res.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', 'category_sample.xlsx')
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode?.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      toaster.success({ title: 'Template downloaded successfully' })
+    } catch {
+      toaster.error({ title: 'Failed to download template' })
+    }
+  }
+
   const summary = {
     total: data?.pagination?.totalCategories ?? rawCategories.length,
     activePage: pagination.currentPage,
@@ -313,7 +333,6 @@ function Categories() {
               color="white"
               h="38px"
               px={4}
-              _hover={{ bg: 'teal.800' }}
               onClick={() => {
                 setDialogMode('add')
                 setEditId(null)
@@ -330,13 +349,12 @@ function Categories() {
             </Button>
 
             <Button
-              variant="subtle"
               bg="white"
-              color="black"
-              borderColor="gray.300"
+              color="gray.800"
+              border="1px solid"
+              borderColor="gray.200"
               h="38px"
               px={3}
-              _hover={{ bg: 'gray.50' }}
               onClick={() => queryClient.invalidateQueries({ queryKey: ['categories'] })}
             >
               <HStack gap={1}>
@@ -358,6 +376,7 @@ function Categories() {
               }}
               onImport={handleImportClick}
               onExport={handleExportClick}
+              onDownloadTemplate={handleDownloadTemplate}
               showUtilityActions={false}
               showRefreshAction={false}
             />
@@ -405,7 +424,6 @@ function Categories() {
               bg="white"
               border="1px solid"
               borderColor="gray.200"
-              _hover={{ bg: 'gray.50' }}
               disabled={!pagination.hasPreviousPage}
             >
               Previous
@@ -420,7 +438,6 @@ function Categories() {
                   color={pg === pagination.currentPage ? 'white' : 'gray.700'}
                   border="1px solid"
                   borderColor={pg === pagination.currentPage ? 'teal.700' : 'teal.100'}
-                  _hover={{ bg: pg === pagination.currentPage ? 'teal.700' : 'teal.50' }}
                   onClick={() => setPage(pg)}
                 >
                   {pg}
@@ -433,7 +450,6 @@ function Categories() {
               bg="white"
               border="1px solid"
               borderColor="gray.200"
-              _hover={{ bg: 'gray.50' }}
               disabled={!pagination.hasNextPage}
             >
               Next

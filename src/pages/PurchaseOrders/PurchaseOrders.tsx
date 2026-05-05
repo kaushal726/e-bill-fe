@@ -130,7 +130,7 @@ const PurchaseOrders = () => {
     {
       key: 'totalCost',
       header: 'Total Cost',
-      render: (po: PurchaseOrder) => `₹${po.totalCost}`,
+      render: (po: PurchaseOrder) => `${po.totalCost}`,
     },
     {
       key: 'status',

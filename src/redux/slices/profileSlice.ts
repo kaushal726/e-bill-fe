@@ -1,5 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
+export interface BankAccount {
+  bankName: string
+  accountHolderName: string
+  accountNumber: string
+  ifscCode: string
+  upiId?: string
+}
+
 export interface ProfileData {
   _id: string
   firstName: string
@@ -8,6 +16,10 @@ export interface ProfileData {
   mobileNumber: string
   shopName: string
   archiveDay: number
+  gstin?: string
+  address?: string
+  pincode?: string
+  bankAccounts?: BankAccount[]
   subscriptionStatus?: string | null
   subscriptionPlan?: string | null
   subscriptionEndsAt?: string | null

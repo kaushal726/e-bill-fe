@@ -86,7 +86,13 @@ export default function StockModal({ open, onClose, mode, defaultValues }: Stock
 
             <Dialog.Footer gap={3} justifyContent="flex-end">
               <Dialog.ActionTrigger asChild>
-                <Button variant="subtle" width="50%">
+                <Button
+                  width="50%"
+                  bg="white"
+                  color="gray.800"
+                  border="1px solid"
+                  borderColor="gray.200"
+                >
                   Cancel
                 </Button>
               </Dialog.ActionTrigger>

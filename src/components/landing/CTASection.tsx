@@ -149,10 +149,6 @@ export function CTASection() {
                   fontWeight="700"
                   borderRadius="full"
                   shadow="xl"
-                  _hover={{
-                    transform: 'translateY(-2px)',
-                    shadow: '2xl',
-                  }}
                   asChild
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -173,10 +169,6 @@ export function CTASection() {
                   borderRadius="full"
                   bg="whiteAlpha.100"
                   backdropFilter="blur(10px)"
-                  _hover={{
-                    bg: 'whiteAlpha.200',
-                    transform: 'translateY(-2px)',
-                  }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >

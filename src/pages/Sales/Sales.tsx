@@ -20,6 +20,7 @@ import SalePaymentModal from '@/components/modals/SalePaymentModal'
 import { useSalesList } from '@/hooks/useSale'
 import { useSaleActions } from '@/hooks/useSaleActions'
 import { useCustomers } from '@/hooks/useCustomer'
+import type { PaymentSplitRecord } from '@/hooks/usePayment'
 
 const paymentStatusColor = {
   pending: 'orange',
@@ -32,9 +33,11 @@ function Sales() {
   const dispatch = useDispatch()
 
   const [createOpen, setCreateOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [editId, setEditId] = useState<string | null>(null)
   const [paymentOpen, setPaymentOpen] = useState(false)
   const [activeSaleId, setActiveSaleId] = useState<string | null>(null)
-  const [activePaidAmount, setActivePaidAmount] = useState<number>(0)
+  const [activePaymentSplits, setActivePaymentSplits] = useState<PaymentSplitRecord[]>([])
   const [activeNote, setActiveNote] = useState('')
 
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -233,11 +236,19 @@ function Sales() {
       onClick: (item: any) => downloadInvoice(item._id, item.invoiceNumber),
     },
     {
+      label: 'Edit Sale',
+      icon: <FaEdit size="14px" color="#7C3AED" />,
+      onClick: (item: any) => {
+        setEditId(item._id)
+        setEditOpen(true)
+      },
+    },
+    {
       label: 'Update Payment',
       icon: <FaEdit size="14px" color="#0f172a" />,
       onClick: (item: any) => {
         setActiveSaleId(item._id)
-        setActivePaidAmount(item.paidAmount || 0)
+        setActivePaymentSplits(item.paymentSplits || [])
         setActiveNote(item.note || '')
         setPaymentOpen(true)
       },
@@ -396,14 +407,7 @@ function Sales() {
             />
           </HStack>
 
-          <Button
-            bg="teal.700"
-            color="white"
-            h="38px"
-            px={4}
-            _hover={{ bg: 'teal.800' }}
-            onClick={() => setCreateOpen(true)}
-          >
+          <Button bg="teal.700" color="white" h="38px" px={4} onClick={() => setCreateOpen(true)}>
             <HStack gap={1.5}>
               <Plus size={18} />
               <Text fontSize="sm" fontWeight="700">
@@ -452,7 +456,6 @@ function Sales() {
               bg="white"
               border="1px solid"
               borderColor="gray.200"
-              _hover={{ bg: 'gray.50' }}
               disabled={!pagination.hasPrevPage}
             >
               Previous
@@ -467,7 +470,6 @@ function Sales() {
                   color={pg === pagination.currentPage ? 'white' : 'gray.700'}
                   border="1px solid"
                   borderColor={pg === pagination.currentPage ? 'teal.700' : 'teal.100'}
-                  _hover={{ bg: pg === pagination.currentPage ? 'teal.700' : 'teal.50' }}
                   onClick={() => setPage(pg)}
                 >
                   {pg}
@@ -480,7 +482,6 @@ function Sales() {
               bg="white"
               border="1px solid"
               borderColor="gray.200"
-              _hover={{ bg: 'gray.50' }}
               disabled={!pagination.hasNextPage}
             >
               Next
@@ -491,11 +492,21 @@ function Sales() {
 
       <SaleModal open={createOpen} onClose={() => setCreateOpen(false)} />
 
+      <SaleModal
+        open={editOpen}
+        onClose={() => {
+          setEditOpen(false)
+          setEditId(null)
+        }}
+        mode="edit"
+        saleId={editId ?? undefined}
+      />
+
       <SalePaymentModal
         open={paymentOpen}
         onClose={() => setPaymentOpen(false)}
         saleId={activeSaleId ?? undefined}
-        defaultPaidAmount={activePaidAmount}
+        defaultPaymentSplits={activePaymentSplits}
         defaultNote={activeNote}
       />
 

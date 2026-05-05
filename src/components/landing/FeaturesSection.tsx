@@ -155,10 +155,6 @@ export function FeaturesSection() {
                     shadow="md"
                     h="100%"
                     transition="all 0.3s"
-                    _hover={{
-                      shadow: 'xl',
-                      borderColor: 'purple.500',
-                    }}
                     position="relative"
                     overflow="hidden"
                   >

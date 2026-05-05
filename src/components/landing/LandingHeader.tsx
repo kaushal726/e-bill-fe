@@ -66,10 +66,6 @@ export function LandingHeader() {
               fontWeight="700"
               px={6}
               borderRadius="full"
-              _hover={{
-                transform: 'translateY(-2px)',
-                shadow: 'lg',
-              }}
               transition="all 0.2s"
               asChild
             >
@@ -124,17 +120,7 @@ export function LandingHeader() {
 
 function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
   return (
-    <Text
-      fontWeight="600"
-      color="gray.200"
-      fontSize="md"
-      transition="all 0.2s"
-      _hover={{
-        color: 'orange.500',
-        transform: 'translateY(-1px)',
-      }}
-      asChild
-    >
+    <Text fontWeight="600" color="gray.200" fontSize="md" transition="all 0.2s" asChild>
       <RouterLink to={to}>{children}</RouterLink>
     </Text>
   )

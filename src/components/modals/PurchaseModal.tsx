@@ -22,6 +22,12 @@ import { useProducts } from '@/hooks/useProducts'
 import { usePurchaseActions } from '@/hooks/usePurchaseActions'
 import { DateInputWithIcon } from '@/components/common/DateInputWithIcon'
 import { toaster } from '@/components/ui/toaster'
+import {
+  SplitPaymentInput,
+  DEFAULT_SPLITS,
+  getSplitsPayload,
+  type PaymentSplit,
+} from '@/components/common/SplitPaymentInput'
 
 type PurchaseFormItem = {
   productId: string
@@ -38,7 +44,7 @@ export interface PurchaseFormValues {
   supplierName?: string
   invoiceNumber?: string
   purchaseDate?: string
-  paidAmount?: string
+  paymentSplits: PaymentSplit[]
   note?: string
   items: PurchaseFormItem[]
 }
@@ -62,7 +68,7 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
     supplierName: '',
     invoiceNumber: '',
     purchaseDate: '',
-    paidAmount: '0',
+    paymentSplits: DEFAULT_SPLITS,
     note: '',
     items: [
       {
@@ -117,7 +123,7 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
       supplierName: '',
       invoiceNumber: '',
       purchaseDate: getTodayDate(),
-      paidAmount: '0',
+      paymentSplits: DEFAULT_SPLITS,
       note: '',
       items: [
         {
@@ -257,7 +263,7 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
         : { supplierName: formData.supplierName?.trim() || 'Walk-in Supplier' }),
       invoiceNumber: formData.invoiceNumber?.trim() || undefined,
       purchaseDate: formData.purchaseDate || undefined,
-      paidAmount: Number(formData.paidAmount || 0),
+      paymentSplits: getSplitsPayload(formData.paymentSplits),
       note: formData.note?.trim() || '',
       items: validItems.map((item) => ({
         productId: item.productId,
@@ -415,10 +421,10 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
                     </Text>
                     <Button
                       size="sm"
-                      variant="subtle"
-                      color="black"
-                      borderColor="black"
                       bg="white"
+                      color="gray.800"
+                      border="1px solid"
+                      borderColor="gray.200"
                       onClick={addItem}
                     >
                       <HStack gap={1}>
@@ -621,36 +627,28 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
                   </VStack>
                 </Box>
 
-                <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
-                  <Field.Root>
-                    <Field.Label color="gray.700" fontWeight="600">
-                      Paid Amount
-                    </Field.Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      value={formData.paidAmount}
-                      onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, paidAmount: e.target.value }))
-                      }
-                      bg="white"
-                      borderColor="gray.200"
-                    />
-                  </Field.Root>
+                <Box>
+                  <SplitPaymentInput
+                    label="Payment Breakdown"
+                    splits={formData.paymentSplits}
+                    onChange={(splits) =>
+                      setFormData((prev) => ({ ...prev, paymentSplits: splits }))
+                    }
+                  />
+                </Box>
 
-                  <Field.Root gridColumn={{ base: 'span 1', md: 'span 2' }}>
-                    <Field.Label color="gray.700" fontWeight="600">
-                      Note
-                    </Field.Label>
-                    <Input
-                      value={formData.note}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, note: e.target.value }))}
-                      placeholder="Optional note"
-                      bg="white"
-                      borderColor="gray.200"
-                    />
-                  </Field.Root>
-                </SimpleGrid>
+                <Field.Root>
+                  <Field.Label color="gray.700" fontWeight="600">
+                    Note
+                  </Field.Label>
+                  <Input
+                    value={formData.note}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, note: e.target.value }))}
+                    placeholder="Optional note"
+                    bg="white"
+                    borderColor="gray.200"
+                  />
+                </Field.Root>
 
                 <HStack justify="space-between" p={3} borderRadius="12px" bg="gray.50">
                   <Text fontSize="sm" fontWeight="600" color="gray.700">
@@ -670,12 +668,12 @@ export default function PurchaseModal({ open, onClose, defaultValues }: Purchase
             >
               <Dialog.ActionTrigger asChild>
                 <Button
-                  variant="subtle"
                   minW="120px"
                   w={{ base: '100%', sm: 'auto' }}
-                  color="black"
-                  borderColor="black"
                   bg="white"
+                  color="gray.800"
+                  border="1px solid"
+                  borderColor="gray.200"
                 >
                   Cancel
                 </Button>

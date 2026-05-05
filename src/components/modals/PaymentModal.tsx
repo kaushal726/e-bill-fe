@@ -21,9 +21,15 @@ import { usePaymentActions } from '@/hooks/usePaymentActions'
 import { usePaymentDues } from '@/hooks/usePayment'
 import { useSales } from '@/hooks/useSale'
 import { ToasterUtil } from '@/components/common/ToasterUtil'
+import {
+  SplitPaymentInput,
+  DEFAULT_SPLITS,
+  getSplitTotal,
+  getSplitsPayload,
+  type PaymentSplit,
+} from '@/components/common/SplitPaymentInput'
 
 type PaymentType = 'supplier' | 'customer'
-type PaymentMode = 'cash' | 'upi' | 'bank' | 'other'
 type PartyMode = 'registered' | 'anonymous'
 const WALKIN_SUPPLIER_NAME = 'Walk-in / Unknown'
 
@@ -33,8 +39,6 @@ interface PaymentModalProps {
   defaultType?: PaymentType
   defaultEntityId?: string
 }
-
-const paymentModes: PaymentMode[] = ['cash', 'upi', 'bank', 'other']
 
 export default function PaymentModal({
   open,
@@ -48,8 +52,7 @@ export default function PaymentModal({
   const [entityId, setEntityId] = useState<string>(defaultEntityId ?? '')
   const [partyName, setPartyName] = useState('')
   const [invoiceRef, setInvoiceRef] = useState('')
-  const [amount, setAmount] = useState('')
-  const [paymentMode, setPaymentMode] = useState<PaymentMode>('cash')
+  const [splits, setSplits] = useState<PaymentSplit[]>(DEFAULT_SPLITS)
   const [note, setNote] = useState('')
 
   const { data: suppliers = [] } = useSupplier()
@@ -69,8 +72,7 @@ export default function PaymentModal({
       setEntityId(defaultEntityId ?? '')
       setPartyName('')
       setInvoiceRef('')
-      setAmount('')
-      setPaymentMode('cash')
+      setSplits(DEFAULT_SPLITS)
       setNote('')
     }
   }, [open, defaultType, defaultEntityId])
@@ -101,7 +103,7 @@ export default function PaymentModal({
     () =>
       createListCollection({
         items: suppliers.map((s) => ({
-          label: `${s.name}  â‚¹${(s.pendingAmount ?? 0).toLocaleString('en-IN')} due`,
+          label: `${s.name}  ${(s.pendingAmount ?? 0).toLocaleString('en-IN')} due`,
           value: s._id,
         })),
       }),
@@ -117,14 +119,6 @@ export default function PaymentModal({
         })),
       }),
     [customers],
-  )
-
-  const modeCollection = useMemo(
-    () =>
-      createListCollection({
-        items: paymentModes.map((m) => ({ label: m.toUpperCase(), value: m })),
-      }),
-    [],
   )
 
   const selectedSupplier = suppliers.find((s) => s._id === entityId)
@@ -182,10 +176,10 @@ export default function PaymentModal({
   }, [paidToType, partyName, duesData])
 
   function handleSubmit() {
-    const parsedAmount = Number(amount)
+    const totalAmount = getSplitTotal(splits)
     const normalizedPartyName = partyName.trim()
     const normalizedInvoiceRef = invoiceRef.trim()
-    if (!parsedAmount) return
+    if (!totalAmount) return
 
     if (partyMode === 'registered' && !entityId) return
     if (partyMode === 'anonymous' && !normalizedPartyName) return
@@ -197,8 +191,7 @@ export default function PaymentModal({
 
     const payload: any = {
       paidToType,
-      amount: parsedAmount,
-      paymentMode,
+      paymentSplits: getSplitsPayload(splits),
       invoiceNumber: normalizedInvoiceRef || undefined,
       note: normalizedInvoiceRef
         ? `${note.trim() ? `${note.trim()} | ` : ''}INV:${normalizedInvoiceRef}`
@@ -407,7 +400,7 @@ export default function PaymentModal({
                       Pending due to supplier
                     </Text>
                     <Badge colorPalette="orange" fontSize="sm">
-                      â‚¹{(selectedSupplier.pendingAmount ?? 0).toLocaleString('en-IN')}
+                      {(selectedSupplier.pendingAmount ?? 0).toLocaleString('en-IN')}
                     </Badge>
                   </HStack>
                 </Box>
@@ -428,7 +421,7 @@ export default function PaymentModal({
                       Customer balance
                     </Text>
                     <Badge colorPalette="blue" fontSize="sm">
-                      â‚¹{(selectedCustomer.balance ?? 0).toLocaleString('en-IN')}
+                      {(selectedCustomer.balance ?? 0).toLocaleString('en-IN')}
                     </Badge>
                   </HStack>
                 </Box>
@@ -452,27 +445,16 @@ export default function PaymentModal({
                       colorPalette={paidToType === 'supplier' ? 'orange' : 'blue'}
                       fontSize="sm"
                     >
-                      â‚¹{Number(anonymousDue?.totalDue || 0).toLocaleString('en-IN')}
+                      {Number(anonymousDue?.totalDue || 0).toLocaleString('en-IN')}
                     </Badge>
                   </HStack>
                 </Box>
               )}
 
-              {/* Amount */}
-              <Field.Root mb={3}>
-                <Field.Label color="gray.700" fontWeight="600">
-                  Amount (â‚¹)
-                </Field.Label>
-                <Input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="Enter amount"
-                  bg="white"
-                  borderColor="gray.200"
-                  min={1}
-                />
-              </Field.Root>
+              {/* Payment Split */}
+              <Box mb={3}>
+                <SplitPaymentInput label="Payment Breakdown" splits={splits} onChange={setSplits} />
+              </Box>
 
               {/* Invoice / Reference */}
               <Field.Root mb={3}>
@@ -506,39 +488,6 @@ export default function PaymentModal({
                 </Box>
               )}
 
-              {/* Payment Mode */}
-              <Field.Root mb={3}>
-                <Field.Label color="gray.700" fontWeight="600">
-                  Payment Mode
-                </Field.Label>
-                <Select.Root
-                  collection={modeCollection}
-                  value={[paymentMode]}
-                  onValueChange={(e) => setPaymentMode(e.value[0] as PaymentMode)}
-                  positioning={{ strategy: 'fixed', hideWhenDetached: true }}
-                >
-                  <Select.HiddenSelect />
-                  <Select.Control>
-                    <Select.Trigger bg="white" borderColor="gray.200">
-                      <Select.ValueText />
-                    </Select.Trigger>
-                    <Select.IndicatorGroup>
-                      <Select.Indicator />
-                    </Select.IndicatorGroup>
-                  </Select.Control>
-                  <Select.Positioner>
-                    <Select.Content bg="white">
-                      {modeCollection.items.map((item) => (
-                        <Select.Item key={item.value} item={item}>
-                          {item.label}
-                          <Select.ItemIndicator />
-                        </Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Positioner>
-                </Select.Root>
-              </Field.Root>
-
               {/* Note */}
               <Field.Root>
                 <Field.Label color="gray.700" fontWeight="600">
@@ -557,11 +506,12 @@ export default function PaymentModal({
             <Dialog.Footer gap={3} justifyContent="flex-end">
               <Dialog.ActionTrigger asChild>
                 <Button
-                  variant="subtle"
                   minW="120px"
                   width="50%"
-                  color="gray.700"
-                  borderColor="gray.300"
+                  bg="white"
+                  color="gray.800"
+                  border="1px solid"
+                  borderColor="gray.200"
                 >
                   Cancel
                 </Button>
@@ -575,7 +525,7 @@ export default function PaymentModal({
                 loading={createPayment.isPending}
                 onClick={handleSubmit}
                 disabled={
-                  Number(amount) <= 0 ||
+                  getSplitTotal(splits) <= 0 ||
                   (partyMode === 'registered' ? !entityId : !partyName.trim())
                 }
               >

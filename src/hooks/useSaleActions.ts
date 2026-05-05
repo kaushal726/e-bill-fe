@@ -1,10 +1,12 @@
 import { API } from '@/api/api'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { API_ENDPOINTS } from '@/api/apiEndpoints'
 import { ToasterUtil } from '@/components/common/ToasterUtil'
 import { AxiosError } from 'axios'
 
 const toast = ToasterUtil()
+
+export type PaymentSplitPayload = { mode: 'cash' | 'card' | 'cheque' | 'upi'; amount: number }
 
 export type SaleCreatePayload = {
   customerId?: string
@@ -25,13 +27,13 @@ export type SaleCreatePayload = {
     amount: number
   }>
   paidAmount?: number
+  paymentSplits?: PaymentSplitPayload[]
   note?: string
+  staffId?: string
+  staffIncentive?: number
 }
 
-export type SaleUpdatePayload = {
-  paidAmount?: number
-  note?: string
-}
+export type SaleUpdatePayload = SaleCreatePayload
 
 export const useSaleActions = () => {
   const queryClient = useQueryClient()
@@ -40,6 +42,8 @@ export const useSaleActions = () => {
     queryClient.invalidateQueries({ queryKey: ['sales'] })
     queryClient.invalidateQueries({ queryKey: ['products'] })
     queryClient.invalidateQueries({ queryKey: ['customers'] })
+    queryClient.invalidateQueries({ queryKey: ['staffIncentiveSummary'] })
+    queryClient.invalidateQueries({ queryKey: ['productAnalytics'] })
   }
 
   const createSale = useMutation({
@@ -62,7 +66,7 @@ export const useSaleActions = () => {
 
   const updateSale = useMutation({
     mutationFn: ({ saleId, payload }: { saleId: string; payload: SaleUpdatePayload }) =>
-      API.patch(`${API_ENDPOINTS.SALE.UPDATE}/${saleId}`, payload).then(
+      API.put(`${API_ENDPOINTS.SALE.UPDATE}/${saleId}`, payload).then(
         (res) => res.data?.data ?? res.data,
       ),
 
@@ -99,4 +103,36 @@ export const useSaleActions = () => {
   })
 
   return { createSale, updateSale, deleteSale }
+}
+
+export type NextInvoiceNumberData = {
+  nextNumber: string
+  financialYear: string
+  seq: number
+}
+
+export const useNextInvoiceNumber = (enabled = true) => {
+  return useQuery<NextInvoiceNumberData>({
+    queryKey: ['nextInvoiceNumber'],
+    queryFn: () =>
+      API.get(API_ENDPOINTS.SALE.NEXT_INVOICE).then((res) => res.data?.data ?? res.data),
+    enabled,
+    staleTime: 0,
+    gcTime: 0,
+  })
+}
+
+export type StaffIncentiveRecord = {
+  _id: string
+  totalIncentive: number
+  saleCount: number
+}
+
+export const useStaffIncentiveSummary = () => {
+  return useQuery<StaffIncentiveRecord[]>({
+    queryKey: ['staffIncentiveSummary'],
+    queryFn: () =>
+      API.get(API_ENDPOINTS.SALE.STAFF_INCENTIVE_SUMMARY).then((res) => res.data?.data ?? res.data),
+    staleTime: 60 * 1000,
+  })
 }

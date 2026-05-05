@@ -18,7 +18,7 @@ const mockNotifications: Notification[] = [
   {
     id: '2',
     title: 'Payment successful',
-    description: '₹1,250 credited to your account',
+    description: '1,250 credited to your account',
     time: '1 hour ago',
   },
   {
@@ -74,14 +74,7 @@ export const NotificationsPopover = ({ trigger }: { trigger: React.ReactNode }) 
             >
               <VStack align="stretch" gap={1}>
                 {mockNotifications.map((n) => (
-                  <Box
-                    key={n.id}
-                    px={2}
-                    py={2}
-                    borderRadius="md"
-                    cursor="pointer"
-                    _hover={{ bg: 'gray.50' }}
-                  >
+                  <Box key={n.id} px={2} py={2} borderRadius="md" cursor="pointer">
                     <Text fontSize="sm" fontWeight="600" color="gray.800">
                       {n.title}
                     </Text>
@@ -112,7 +105,6 @@ export const NotificationsPopover = ({ trigger }: { trigger: React.ReactNode }) 
                 bg="gray.100"
                 color="gray.700"
                 borderRadius="md"
-                _hover={{ bg: 'gray.200' }}
                 _active={{ bg: 'gray.300' }}
               >
                 Clear all
@@ -126,7 +118,6 @@ export const NotificationsPopover = ({ trigger }: { trigger: React.ReactNode }) 
                 bg="blue.600"
                 color="white"
                 borderRadius="md"
-                _hover={{ bg: 'blue.700' }}
                 _active={{ bg: 'blue.800' }}
               >
                 View all

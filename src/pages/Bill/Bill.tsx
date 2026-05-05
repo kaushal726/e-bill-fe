@@ -93,7 +93,7 @@ const Bill = () => {
     {
       key: 'amount',
       header: 'Amount',
-      render: (b: BillRecord) => `₹${b.amount?.toFixed(2) ?? '0.00'}`,
+      render: (b: BillRecord) => `${b.amount?.toFixed(2) ?? '0.00'}`,
     },
     {
       key: 'status',

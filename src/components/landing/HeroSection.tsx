@@ -180,10 +180,6 @@ export function HeroSection() {
                 borderRadius="full"
                 shadow="xl"
                 color="white"
-                _hover={{
-                  transform: 'translateY(-2px)',
-                  shadow: '2xl',
-                }}
                 asChild
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -203,11 +199,6 @@ export function HeroSection() {
                 borderRadius="full"
                 bg="transparent"
                 color="white"
-                _hover={{
-                  bg: 'whiteAlpha.100',
-                  borderColor: 'orange.500',
-                  transform: 'translateY(-2px)',
-                }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 asChild

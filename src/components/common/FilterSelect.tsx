@@ -79,7 +79,6 @@ export const FilterSelect = ({
                   key={item.value}
                   item={item}
                   borderRadius="8px"
-                  _hover={{ bg: 'teal.50' }}
                   _highlighted={{ bg: 'teal.50' }}
                 >
                   {item.label}

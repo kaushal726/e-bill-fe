@@ -181,7 +181,6 @@ export default function InvoicePage() {
               color="gray.600"
               border="1px solid"
               borderColor="gray.100"
-              _hover={{ bg: 'gray.50' }}
               shadow={'lighterGray'}
             >
               <Upload size={16} />
@@ -195,21 +194,13 @@ export default function InvoicePage() {
               color="gray.600"
               border="1px solid"
               borderColor="gray.100"
-              _hover={{ bg: 'gray.50' }}
               shadow={'lighterGray'}
             >
               <Download size={16} />
               Export
             </Button>
 
-            <Button
-              h="38px"
-              px={5}
-              bg="blue.600"
-              color="white"
-              _hover={{ bg: 'blue.700' }}
-              shadow={'lighterGray'}
-            >
+            <Button h="38px" px={5} bg="blue.600" color="white" shadow={'lighterGray'}>
               <Plus size={16} />
               Create Invoice
             </Button>
@@ -296,7 +287,6 @@ export default function InvoicePage() {
             fontSize="sm"
             fontWeight="medium"
             shadow={'lighterGray'}
-            _hover={{ bg: 'gray.50' }}
             _active={{ bg: 'gray.100' }}
           >
             <HStack gap={2}>

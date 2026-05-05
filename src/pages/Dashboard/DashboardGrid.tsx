@@ -982,7 +982,6 @@ export function DashboardGrid() {
           color="white"
           border="1px solid"
           borderColor="gray.900"
-          _hover={{ bg: 'gray.800', color: 'white', borderColor: 'gray.800' }}
           onClick={() => refetch()}
         >
           Refresh dashboard

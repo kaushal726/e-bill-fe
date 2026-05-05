@@ -129,12 +129,12 @@ const Credits = () => {
     {
       key: 'amount',
       header: 'Credit Amount',
-      render: (c: Credit) => `₹${c.amount}`,
+      render: (c: Credit) => `${c.amount}`,
     },
     {
       key: 'appliedAmount',
       header: 'Applied',
-      render: (c: Credit) => `₹${c.appliedAmount}`,
+      render: (c: Credit) => `${c.appliedAmount}`,
     },
     {
       key: 'status',

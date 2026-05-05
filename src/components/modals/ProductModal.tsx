@@ -14,10 +14,11 @@ import {
   Text,
 } from '@chakra-ui/react'
 import { createListCollection } from '@chakra-ui/react'
-import { X } from 'lucide-react'
+import { X, Shirt } from 'lucide-react'
 
 import { useProductActions } from '@/hooks/useProductActions'
 import { useCategory } from '@/hooks/useCategory'
+import { useBrand } from '@/hooks/useBrand'
 import { useSupplier } from '@/hooks/useSupplier'
 
 const unitCollection = createListCollection({
@@ -36,13 +37,14 @@ const unitCollection = createListCollection({
 const discountTypeCollection = createListCollection({
   items: [
     { label: 'Percentage (%)', value: 'percentage' },
-    { label: 'Absolute (â‚¹)', value: 'absolute' },
+    { label: 'Absolute', value: 'absolute' },
   ],
 })
 
 export interface ProductFormValues {
   name: string
-  brand?: string
+  brandId?: string
+  newBrandName?: string
   categoryId?: string
   newCategoryName?: string
   supplierId?: string
@@ -55,6 +57,9 @@ export interface ProductFormValues {
   discountType?: string
   discountValue?: string
   minimumStock?: string
+  size?: string
+  color?: string
+  material?: string
 }
 
 interface ProductDialogProps {
@@ -74,7 +79,8 @@ export default function ProductDialog({
 }: ProductDialogProps) {
   const [formData, setFormData] = useState<ProductFormValues>({
     name: '',
-    brand: '',
+    brandId: '',
+    newBrandName: '',
     categoryId: '',
     newCategoryName: '',
     supplierId: '',
@@ -87,11 +93,26 @@ export default function ProductDialog({
     discountType: 'percentage',
     discountValue: '0',
     minimumStock: '0',
+    size: '',
+    color: '',
+    material: '',
   })
 
   const { createProduct, updateProduct } = useProductActions()
   const { data: categoryData } = useCategory({ page: 1, limit: 50 })
+  const { data: brandData } = useBrand({ page: 1, limit: 100 })
   const { data: suppliers = [] } = useSupplier()
+
+  const brandCollection = useMemo(
+    () =>
+      createListCollection({
+        items: (brandData?.brands || []).map((b: any) => ({
+          label: b.name,
+          value: b._id,
+        })),
+      }),
+    [brandData?.brands],
+  )
 
   const categoryCollection = useMemo(
     () =>
@@ -121,7 +142,8 @@ export default function ProductDialog({
     } else {
       setFormData({
         name: '',
-        brand: '',
+        brandId: '',
+        newBrandName: '',
         categoryId: '',
         newCategoryName: '',
         supplierId: '',
@@ -134,12 +156,20 @@ export default function ProductDialog({
         discountType: 'percentage',
         discountValue: '0',
         minimumStock: '0',
+        size: '',
+        color: '',
+        material: '',
       })
     }
   }, [defaultValues, mode])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target
+
+    if (name === 'newBrandName' && value.trim()) {
+      setFormData((prev) => ({ ...prev, newBrandName: value, brandId: '' }))
+      return
+    }
 
     if (name === 'newCategoryName' && value.trim()) {
       setFormData((prev) => ({ ...prev, newCategoryName: value, categoryId: '' }))
@@ -152,7 +182,8 @@ export default function ProductDialog({
   function handleSubmit() {
     const payload = {
       name: formData.name.trim(),
-      brand: formData.brand?.trim() || '',
+      brandId: formData.brandId?.trim() || '',
+      newBrandName: formData.newBrandName?.trim() || '',
       categoryId: formData.categoryId?.trim() || '',
       newCategoryName: formData.newCategoryName?.trim() || '',
       supplierId: formData.supplierId?.trim() || '',
@@ -165,6 +196,9 @@ export default function ProductDialog({
       discountType: formData.discountType?.trim() || 'percentage',
       discountValue: Number(formData.discountValue || 0),
       minimumStock: Number(formData.minimumStock || 0),
+      size: formData.size?.trim() || '',
+      color: formData.color?.trim() || '',
+      material: formData.material?.trim() || '',
     }
 
     if (mode === 'add') {
@@ -247,11 +281,49 @@ export default function ProductDialog({
                   <Field.Label color="gray.700" fontWeight="600">
                     Brand
                   </Field.Label>
+                  <Select.Root
+                    collection={brandCollection}
+                    value={formData.brandId ? [formData.brandId] : []}
+                    onValueChange={(details) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        brandId: details.value[0] || '',
+                        newBrandName: '',
+                      }))
+                    }
+                    positioning={{ strategy: 'fixed', hideWhenDetached: true }}
+                  >
+                    <Select.HiddenSelect name="brandId" />
+                    <Select.Control>
+                      <Select.Trigger>
+                        <Select.ValueText placeholder="Select brand" />
+                      </Select.Trigger>
+                      <Select.IndicatorGroup>
+                        <Select.Indicator />
+                      </Select.IndicatorGroup>
+                    </Select.Control>
+                    <Select.Positioner>
+                      <Select.Content bg="white">
+                        {brandCollection.items.map((item) => (
+                          <Select.Item item={item} key={item.value}>
+                            {item.label}
+                            <Select.ItemIndicator />
+                          </Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select.Positioner>
+                  </Select.Root>
+                </Field.Root>
+
+                <Field.Root>
+                  <Field.Label color="gray.700" fontWeight="600">
+                    New Brand Name
+                  </Field.Label>
                   <Input
-                    name="brand"
-                    value={formData.brand}
+                    name="newBrandName"
+                    value={formData.newBrandName}
                     onChange={handleChange}
-                    placeholder="Optional"
+                    placeholder="Optional (creates brand)"
                     bg="white"
                     borderColor="gray.200"
                   />
@@ -525,6 +597,73 @@ export default function ProductDialog({
                     </Select.Positioner>
                   </Select.Root>
                 </Field.Root>
+
+                {/* Apparel / Variant fields — optional */}
+                <Box
+                  gridColumn={{ base: '1', md: '1 / -1' }}
+                  p={3}
+                  borderRadius="12px"
+                  bg="orange.50"
+                  border="1px solid"
+                  borderColor="orange.100"
+                >
+                  <HStack gap={1.5} mb={3}>
+                    <Shirt size={13} color="#c2410c" />
+                    <Text
+                      fontSize="xs"
+                      fontWeight="700"
+                      color="orange.700"
+                      textTransform="uppercase"
+                      letterSpacing="0.06em"
+                    >
+                      Apparel / Variant (optional)
+                    </Text>
+                  </HStack>
+                  <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
+                    <Field.Root>
+                      <Field.Label color="gray.700" fontWeight="600" fontSize="sm">
+                        Size
+                      </Field.Label>
+                      <Input
+                        name="size"
+                        value={formData.size || ''}
+                        onChange={handleChange}
+                        placeholder="e.g. S, M, L, XL, 32"
+                        bg="white"
+                        borderColor="gray.200"
+                        size="sm"
+                      />
+                    </Field.Root>
+                    <Field.Root>
+                      <Field.Label color="gray.700" fontWeight="600" fontSize="sm">
+                        Color
+                      </Field.Label>
+                      <Input
+                        name="color"
+                        value={formData.color || ''}
+                        onChange={handleChange}
+                        placeholder="e.g. Red, Blue, Black"
+                        bg="white"
+                        borderColor="gray.200"
+                        size="sm"
+                      />
+                    </Field.Root>
+                    <Field.Root>
+                      <Field.Label color="gray.700" fontWeight="600" fontSize="sm">
+                        Material
+                      </Field.Label>
+                      <Input
+                        name="material"
+                        value={formData.material || ''}
+                        onChange={handleChange}
+                        placeholder="e.g. Cotton, Polyester"
+                        bg="white"
+                        borderColor="gray.200"
+                        size="sm"
+                      />
+                    </Field.Root>
+                  </SimpleGrid>
+                </Box>
               </SimpleGrid>
             </Dialog.Body>
 
@@ -535,12 +674,12 @@ export default function ProductDialog({
             >
               <Dialog.ActionTrigger asChild>
                 <Button
-                  variant="subtle"
                   minW="120px"
                   width={{ base: '100%', md: '50%' }}
-                  color="black"
-                  borderColor="black"
                   bg="white"
+                  color="gray.800"
+                  border="1px solid"
+                  borderColor="gray.200"
                 >
                   Cancel
                 </Button>

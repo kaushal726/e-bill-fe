@@ -36,7 +36,6 @@ export const FilterDrawer = ({
           color="gray.800"
           border="1px solid"
           borderColor="teal.200"
-          _hover={{ bg: 'teal.50', borderColor: 'teal.300' }}
         >
           <HStack gap={2}>
             <SlidersHorizontal size={16} />
@@ -97,8 +96,8 @@ export const FilterDrawer = ({
             <Drawer.Footer borderTop="1px solid" borderColor="gray.100">
               <Flex w="100%" justify="space-between" align="center" gap={2}>
                 <Button
-                  variant="subtle"
                   bg="white"
+                  color="gray.800"
                   border="1px solid"
                   borderColor="gray.200"
                   onClick={onClearAll}
@@ -106,12 +105,7 @@ export const FilterDrawer = ({
                 >
                   Clear All
                 </Button>
-                <Button
-                  bg="teal.700"
-                  color="white"
-                  _hover={{ bg: 'teal.800' }}
-                  onClick={() => setOpen(false)}
-                >
+                <Button bg="teal.700" color="white" onClick={() => setOpen(false)}>
                   Done
                 </Button>
               </Flex>

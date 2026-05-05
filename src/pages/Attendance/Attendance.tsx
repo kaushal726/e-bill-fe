@@ -151,7 +151,6 @@ const Attendance = () => {
             color={row.status === 'present' ? 'white' : 'green.700'}
             border="1px solid"
             borderColor="green.300"
-            _hover={{ bg: 'green.50' }}
             onClick={() => handleMark(row._id, 'present')}
           >
             Present
@@ -162,7 +161,6 @@ const Attendance = () => {
             color={row.status === 'halfday' ? 'white' : 'orange.700'}
             border="1px solid"
             borderColor="orange.300"
-            _hover={{ bg: 'orange.50' }}
             onClick={() => handleMark(row._id, 'halfday')}
           >
             Half Day
@@ -173,7 +171,6 @@ const Attendance = () => {
             color={row.status === 'absent' ? 'white' : 'red.600'}
             border="1px solid"
             borderColor="red.200"
-            _hover={{ bg: 'red.50' }}
             onClick={() => handleMark(row._id, 'absent')}
           >
             Absent
@@ -184,7 +181,6 @@ const Attendance = () => {
             color={row.status === 'leave' ? 'white' : 'yellow.700'}
             border="1px solid"
             borderColor="yellow.300"
-            _hover={{ bg: 'yellow.50' }}
             onClick={() => handleMark(row._id, 'leave')}
           >
             Leave
@@ -246,7 +242,6 @@ const Attendance = () => {
               color="gray.900"
               border="1px solid"
               borderColor="gray.200"
-              _hover={{ bg: 'gray.50' }}
               h="38px"
               gap={2}
             >
@@ -285,7 +280,6 @@ const Attendance = () => {
             color="white"
             h="38px"
             px={4}
-            _hover={{ bg: 'green.700' }}
             loading={bulkMarkAttendance.isPending}
             onClick={handleBulkPresent}
           >
@@ -427,7 +421,7 @@ const Attendance = () => {
                 Total Payable
               </Text>
               <Text mt={1} fontSize="xl" fontWeight="800" color="blue.700">
-                ₹{Number(monthlySummary?.totals?.totalPayable ?? 0).toLocaleString('en-IN')}
+                {Number(monthlySummary?.totals?.totalPayable ?? 0).toLocaleString('en-IN')}
               </Text>
             </Box>
           </GridItem>
@@ -467,12 +461,12 @@ const Attendance = () => {
               {
                 key: 'monthlyRate',
                 header: 'Monthly Rate',
-                render: (row: any) => `₹${Number(row.monthlyRate || 0).toLocaleString('en-IN')}`,
+                render: (row: any) => `${Number(row.monthlyRate || 0).toLocaleString('en-IN')}`,
               },
               {
                 key: 'payableAmount',
                 header: 'Salary Payable',
-                render: (row: any) => `₹${Number(row.payableAmount || 0).toLocaleString('en-IN')}`,
+                render: (row: any) => `${Number(row.payableAmount || 0).toLocaleString('en-IN')}`,
               },
             ]}
             data={monthlySummary?.summary ?? []}

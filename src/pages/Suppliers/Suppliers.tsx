@@ -512,7 +512,6 @@ function Suppliers() {
               color="white"
               h="38px"
               px={4}
-              _hover={{ bg: 'teal.800' }}
               onClick={() => {
                 setDialogMode('add')
                 setEditId(null)
@@ -529,13 +528,12 @@ function Suppliers() {
             </Button>
 
             <Button
-              variant="subtle"
               bg="white"
-              color="black"
-              borderColor="gray.300"
+              color="gray.800"
+              border="1px solid"
+              borderColor="gray.200"
               h="38px"
               px={3}
-              _hover={{ bg: 'gray.50' }}
               onClick={() => queryClient.invalidateQueries({ queryKey: ['suppliers'] })}
             >
               <HStack gap={1}>
@@ -620,7 +618,6 @@ function Suppliers() {
               bg="white"
               border="1px solid"
               borderColor="gray.200"
-              _hover={{ bg: 'gray.50' }}
               disabled={!pagination.hasPrevPage}
             >
               Previous
@@ -635,7 +632,6 @@ function Suppliers() {
                   color={pg === pagination.currentPage ? 'white' : 'gray.700'}
                   border="1px solid"
                   borderColor={pg === pagination.currentPage ? 'teal.700' : 'teal.100'}
-                  _hover={{ bg: pg === pagination.currentPage ? 'teal.700' : 'teal.50' }}
                   onClick={() => setPage(pg)}
                 >
                   {pg}
@@ -648,7 +644,6 @@ function Suppliers() {
               bg="white"
               border="1px solid"
               borderColor="gray.200"
-              _hover={{ bg: 'gray.50' }}
               disabled={!pagination.hasNextPage}
             >
               Next

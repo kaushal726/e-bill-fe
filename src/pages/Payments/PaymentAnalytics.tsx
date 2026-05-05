@@ -60,7 +60,6 @@ const PaymentAnalytics = () => {
           onClick={() => navigate('/payments')}
           px={2}
           color="gray.600"
-          _hover={{ bg: 'gray.100', color: 'gray.900' }}
         >
           <HStack gap={1.5}>
             <ArrowLeft size={15} />
@@ -201,7 +200,6 @@ const PaymentAnalytics = () => {
         borderRadius="16px"
         p={4}
         cursor="pointer"
-        _hover={{ borderColor: 'gray.300', shadow: 'sm' }}
         onClick={() => navigate('/payments/dues')}
       >
         <Flex align="center" justify="space-between">

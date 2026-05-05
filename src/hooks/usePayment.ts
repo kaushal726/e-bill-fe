@@ -2,6 +2,9 @@ import { API } from '@/api/api'
 import API_ENDPOINTS from '@/api/apiEndpoints'
 import { useQuery } from '@tanstack/react-query'
 
+export type SplitMode = 'cash' | 'card' | 'cheque' | 'upi'
+export type PaymentSplitRecord = { mode: SplitMode; amount: number }
+
 export type PaymentRecord = {
   _id: string
   paidToType: 'supplier' | 'customer'
@@ -28,7 +31,8 @@ export type PaymentRecord = {
     invoiceNumber?: string
   } | null
   amount: number
-  paymentMode: 'cash' | 'upi' | 'bank' | 'other'
+  paymentMode: 'cash' | 'upi' | 'bank' | 'other' | 'card' | 'cheque'
+  paymentSplits?: PaymentSplitRecord[]
   note?: string
   paymentDate?: string
   createdAt?: string
@@ -60,7 +64,7 @@ export type PaymentListResponse = {
 export type PaymentQueryParams = {
   search?: string
   paidToType?: 'supplier' | 'customer'
-  paymentMode?: 'cash' | 'upi' | 'bank' | 'other'
+  paymentMode?: 'cash' | 'upi' | 'bank' | 'other' | 'card' | 'cheque'
   partyId?: string
   fromDate?: string
   toDate?: string
@@ -203,6 +207,8 @@ export type PaymentAnalytics = {
     upi: number
     bank: number
     other: number
+    card: number
+    cheque: number
   }
   actionables: {
     topSupplierPayables: AnalyticsPartyRow[]
@@ -314,6 +320,8 @@ const getPaymentAnalytics = async (): Promise<PaymentAnalytics> => {
       upi: Number(raw?.paymentModeBreakdown?.upi || 0),
       bank: Number(raw?.paymentModeBreakdown?.bank || 0),
       other: Number(raw?.paymentModeBreakdown?.other || 0),
+      card: Number(raw?.paymentModeBreakdown?.card || 0),
+      cheque: Number(raw?.paymentModeBreakdown?.cheque || 0),
     },
     actionables: {
       topSupplierPayables: raw?.actionables?.topSupplierPayables || [],

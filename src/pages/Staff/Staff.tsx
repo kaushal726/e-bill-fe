@@ -1,7 +1,8 @@
 ﻿import { Flex, HStack, Text, Heading, IconButton, Button, Box } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { Plus } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Plus, User } from 'lucide-react'
 
 import { FaEdit, FaTrash } from '@/components/icons'
 import { CommonTable } from '@/components/common/CommonTable'
@@ -11,11 +12,16 @@ import ConfirmDeleteDialog from '@/components/modals/ConfirmDelete'
 
 import { useStaff } from '@/hooks/useStaff'
 import { useStaffActions } from '@/hooks/useStaffActions'
+import { useStaffIncentiveSummary } from '@/hooks/useSaleActions'
 import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 import StaffDialog, { StaffFormValues } from '@/components/modals/StaffModal'
+import { API } from '@/api/api'
+import { API_ENDPOINTS } from '@/api/apiEndpoints'
+import { toaster } from '@/components/ui/toaster'
 
 function Staff() {
   const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   const [page, setPage] = useState(1)
   const [open, setOpen] = useState(false)
@@ -28,6 +34,12 @@ function Staff() {
 
   const { data, isLoading } = useStaff(page)
   const { deleteStaff, exportStaff, importStaff } = useStaffActions(deleteId ?? '')
+  const { data: incentiveSummary = [] } = useStaffIncentiveSummary()
+
+  const incentiveMap = incentiveSummary.reduce<Record<string, number>>((acc, rec) => {
+    acc[rec._id] = rec.totalIncentive
+    return acc
+  }, {})
 
   const staff = data?.staff ?? []
   const pagination = data?.pagination ?? {
@@ -82,6 +94,14 @@ function Staff() {
             : 'Regular',
     },
     {
+      key: 'incentive',
+      header: 'Total Incentive',
+      render: (s: any) => {
+        const amt = incentiveMap[s._id] || 0
+        return amt > 0 ? `${amt.toLocaleString('en-IN')}` : '—'
+      },
+    },
+    {
       key: 'joinDate',
       header: 'Join Date',
       render: (s: any) => new Date(s.joinDate).toLocaleDateString(),
@@ -91,6 +111,11 @@ function Staff() {
   /* ---------------- TABLE ACTIONS ---------------- */
 
   const staffActions = [
+    {
+      label: 'View Profile',
+      icon: <User size={14} color="#0f766e" />,
+      onClick: (item: any) => navigate(`/staff/${item._id}`),
+    },
     {
       label: 'Edit',
       icon: <FaEdit size="14px" color="#7C3AED" />,
@@ -119,6 +144,25 @@ function Staff() {
       },
     },
   ]
+
+  /* ---------------- TEMPLATE DOWNLOAD ---------------- */
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const res = await API.get(API_ENDPOINTS.STAFF.TEMPLATE, { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([res.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', 'staff_sample.xlsx')
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode?.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      toaster.success({ title: 'Template downloaded successfully' })
+    } catch {
+      toaster.error({ title: 'Failed to download template' })
+    }
+  }
 
   /* ---------------- HEADER ---------------- */
 
@@ -186,7 +230,7 @@ function Staff() {
               </HStack>
             </IconButton>
 
-            <HStack h="32px" _hover={{ bg: 'gray.300' }}>
+            <HStack h="32px">
               <TableActionsPopover
                 onSortChange={function (key: SortKey, order: 'asc' | 'desc'): void {
                   throw new Error('Function not implemented.')
@@ -202,6 +246,7 @@ function Staff() {
                   input.click()
                 }}
                 onExport={() => exportStaff.mutate()}
+                onDownloadTemplate={handleDownloadTemplate}
               />
             </HStack>
           </HStack>
@@ -243,11 +288,13 @@ function Staff() {
           <Button
             onClick={() => setPage(pagination.currentPage - 1)}
             disabled={!pagination.hasPrevPage}
-            variant="subtle"
             bg="white"
+            color="gray.800"
+            border="1px solid"
+            borderColor="gray.200"
             rounded="lg"
           >
-            <Text color="gray.800">Previous</Text>
+            Previous
           </Button>
 
           <HStack gap={2}>
@@ -260,7 +307,6 @@ function Staff() {
                   rounded="lg"
                   bg={pg === pagination.currentPage ? 'purple.100' : 'transparent'}
                   color={pg === pagination.currentPage ? 'purple.600' : 'gray.700'}
-                  _hover={{ bg: 'purple.50' }}
                 >
                   {pg}
                 </Button>
@@ -271,11 +317,13 @@ function Staff() {
           <Button
             onClick={() => setPage(pagination.currentPage + 1)}
             disabled={!pagination.hasNextPage}
-            variant="subtle"
             bg="white"
+            color="gray.800"
+            border="1px solid"
+            borderColor="gray.200"
             rounded="lg"
           >
-            <Text color="gray.800">Next</Text>
+            Next
           </Button>
         </Flex>
       </Flex>

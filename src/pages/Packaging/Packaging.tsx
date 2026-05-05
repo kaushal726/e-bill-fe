@@ -109,7 +109,7 @@ const Packaging = () => {
     {
       key: 'cost',
       header: 'Cost / Unit',
-      render: (p: PackagingItem) => `₹${p.cost}`,
+      render: (p: PackagingItem) => `${p.cost}`,
     },
     {
       key: 'status',

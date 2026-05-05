@@ -3,6 +3,9 @@
 import { FaEdit, FaTrash } from '@/components/icons'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { API } from '@/api/api'
+import { API_ENDPOINTS } from '@/api/apiEndpoints'
+import { toaster } from '@/components/ui/toaster'
 
 import ConfirmDeleteDialog from '@/components/modals/ConfirmDelete'
 import ProductDialog, { ProductFormValues } from '@/components/modals/ProductModal'
@@ -134,7 +137,7 @@ function Products() {
       key: 'brand',
       header: 'Brand',
       width: '170px',
-      render: (p: any) => p.brand || '-',
+      render: (p: any) => p.brandId?.name || p.brand || '-',
     },
     {
       key: 'category',
@@ -227,7 +230,8 @@ function Products() {
         setEditId(item._id)
         setEditDefaults({
           name: item.name,
-          brand: item.brand,
+          brandId: item.brandId?._id,
+          newBrandName: '',
           categoryId: item.categoryId?._id,
           supplierId: item.supplierId?._id,
           purchasePrice: String(item.purchasePrice ?? 0),
@@ -292,6 +296,23 @@ function Products() {
       limit,
       ...(sortBy && sortOrder ? { sortBy, sortOrder } : {}),
     })
+  }
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const res = await API.get(API_ENDPOINTS.PRODUCTS.TEMPLATE, { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([res.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', 'product_sample.xlsx')
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode?.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      toaster.success({ title: 'Template downloaded successfully' })
+    } catch {
+      toaster.error({ title: 'Failed to download template' })
+    }
   }
 
   const summary = {
@@ -625,7 +646,6 @@ function Products() {
               color="white"
               h="38px"
               px={4}
-              _hover={{ bg: 'teal.800' }}
               onClick={() => {
                 setDialogMode('add')
                 setEditId(null)
@@ -642,13 +662,12 @@ function Products() {
             </Button>
 
             <Button
-              variant="subtle"
               bg="white"
-              color="black"
-              borderColor="gray.300"
+              color="gray.800"
+              border="1px solid"
+              borderColor="gray.200"
               h="38px"
               px={3}
-              _hover={{ bg: 'gray.50' }}
               onClick={() => queryClient.invalidateQueries({ queryKey: ['products'] })}
             >
               <HStack gap={1}>
@@ -670,6 +689,7 @@ function Products() {
               }}
               onImport={handleImportClick}
               onExport={handleExportClick}
+              onDownloadTemplate={handleDownloadTemplate}
               showUtilityActions={false}
               showRefreshAction={false}
             />
@@ -706,7 +726,6 @@ function Products() {
               bg="white"
               border="1px solid"
               borderColor="gray.200"
-              _hover={{ bg: 'gray.50' }}
               disabled={!pagination.hasPreviousPage}
             >
               Previous
@@ -722,7 +741,6 @@ function Products() {
                   color={pg === pagination.currentPage ? 'white' : 'gray.700'}
                   border="1px solid"
                   borderColor={pg === pagination.currentPage ? 'teal.700' : 'teal.100'}
-                  _hover={{ bg: pg === pagination.currentPage ? 'teal.700' : 'teal.50' }}
                 >
                   {pg}
                 </Button>
@@ -734,7 +752,6 @@ function Products() {
               bg="white"
               border="1px solid"
               borderColor="gray.200"
-              _hover={{ bg: 'gray.50' }}
               disabled={!pagination.hasNextPage}
             >
               Next

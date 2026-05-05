@@ -1,5 +1,14 @@
 ﻿import { useEffect, useState } from 'react'
-import { Dialog, Portal, Button, Input, Field, useMediaQuery, SimpleGrid } from '@chakra-ui/react'
+import {
+  Dialog,
+  Portal,
+  Button,
+  Input,
+  Field,
+  useMediaQuery,
+  SimpleGrid,
+  Text,
+} from '@chakra-ui/react'
 import { X } from 'lucide-react'
 import { useSupplierActions } from '@/hooks/useSupplierActions'
 
@@ -7,6 +16,11 @@ export interface SupplierFormValues {
   name: string
   mobileNumber: string
   address?: string
+  gstNumber?: string
+  bankName?: string
+  accountHolderName?: string
+  bankAccountNumber?: string
+  ifscCode?: string
   pendingAmount?: number
   totalPurchaseAmount?: number
 }
@@ -30,6 +44,11 @@ export default function SupplierModal({
     name: '',
     mobileNumber: '',
     address: '',
+    gstNumber: '',
+    bankName: '',
+    accountHolderName: '',
+    bankAccountNumber: '',
+    ifscCode: '',
     pendingAmount: 0,
     totalPurchaseAmount: 0,
   })
@@ -44,6 +63,11 @@ export default function SupplierModal({
         name: '',
         mobileNumber: '',
         address: '',
+        gstNumber: '',
+        bankName: '',
+        accountHolderName: '',
+        bankAccountNumber: '',
+        ifscCode: '',
         pendingAmount: 0,
         totalPurchaseAmount: 0,
       })
@@ -69,6 +93,11 @@ export default function SupplierModal({
       name: formData.name.trim(),
       mobileNumber: formData.mobileNumber.trim(),
       address: formData.address?.trim() || '',
+      gstNumber: formData.gstNumber?.trim().toUpperCase() || '',
+      bankName: formData.bankName?.trim() || '',
+      accountHolderName: formData.accountHolderName?.trim() || '',
+      bankAccountNumber: formData.bankAccountNumber?.trim() || '',
+      ifscCode: formData.ifscCode?.trim().toUpperCase() || '',
       pendingAmount: formData.pendingAmount ?? 0,
       totalPurchaseAmount: formData.totalPurchaseAmount ?? 0,
     }
@@ -111,7 +140,7 @@ export default function SupplierModal({
             shadow="xl"
             p={4}
             width="100%"
-            maxW="560px"
+            maxW="640px"
             border="1px solid"
             borderColor="gray.100"
           >
@@ -172,6 +201,118 @@ export default function SupplierModal({
                 />
               </Field.Root>
 
+              <Text
+                fontSize="xs"
+                fontWeight="700"
+                color="gray.500"
+                letterSpacing="0.08em"
+                textTransform="uppercase"
+                mb={2}
+                mt={1}
+              >
+                GST Details
+              </Text>
+
+              <Field.Root mb={3}>
+                <Field.Label color="gray.700" fontWeight="600">
+                  GST Number
+                </Field.Label>
+                <Input
+                  name="gstNumber"
+                  value={formData.gstNumber ?? ''}
+                  onChange={handleChange}
+                  placeholder="e.g. 27AAPFU0939F1ZV"
+                  bg="white"
+                  borderColor="gray.200"
+                  textTransform="uppercase"
+                />
+              </Field.Root>
+
+              <Text
+                fontSize="xs"
+                fontWeight="700"
+                color="gray.500"
+                letterSpacing="0.08em"
+                textTransform="uppercase"
+                mb={2}
+                mt={1}
+              >
+                Bank Details
+              </Text>
+
+              <SimpleGrid columns={{ base: 1, md: 2 }} gap={3} mb={3}>
+                <Field.Root>
+                  <Field.Label color="gray.700" fontWeight="600">
+                    Bank Name
+                  </Field.Label>
+                  <Input
+                    name="bankName"
+                    value={formData.bankName ?? ''}
+                    onChange={handleChange}
+                    placeholder="e.g. State Bank of India"
+                    bg="white"
+                    borderColor="gray.200"
+                  />
+                </Field.Root>
+
+                <Field.Root>
+                  <Field.Label color="gray.700" fontWeight="600">
+                    Account Holder Name
+                  </Field.Label>
+                  <Input
+                    name="accountHolderName"
+                    value={formData.accountHolderName ?? ''}
+                    onChange={handleChange}
+                    placeholder="Name on bank account"
+                    bg="white"
+                    borderColor="gray.200"
+                  />
+                </Field.Root>
+              </SimpleGrid>
+
+              <SimpleGrid columns={{ base: 1, md: 2 }} gap={3} mb={3}>
+                <Field.Root>
+                  <Field.Label color="gray.700" fontWeight="600">
+                    Account Number
+                  </Field.Label>
+                  <Input
+                    name="bankAccountNumber"
+                    value={formData.bankAccountNumber ?? ''}
+                    onChange={handleChange}
+                    placeholder="Enter account number"
+                    bg="white"
+                    borderColor="gray.200"
+                  />
+                </Field.Root>
+
+                <Field.Root>
+                  <Field.Label color="gray.700" fontWeight="600">
+                    IFSC Code
+                  </Field.Label>
+                  <Input
+                    name="ifscCode"
+                    value={formData.ifscCode ?? ''}
+                    onChange={handleChange}
+                    placeholder="e.g. SBIN0001234"
+                    bg="white"
+                    borderColor="gray.200"
+                    textTransform="uppercase"
+                  />
+                </Field.Root>
+              </SimpleGrid>
+
+              <Text
+                fontSize="xs"
+                fontWeight="700"
+                color="gray.500"
+                letterSpacing="0.08em"
+                textTransform="uppercase"
+                mb={2}
+                mt={1}
+              >
+                Amount
+              </Text>
+
               <SimpleGrid columns={{ base: 1, md: 2 }} gap={3} mb={3}>
                 <Field.Root>
                   <Field.Label color="gray.700" fontWeight="600">
@@ -210,12 +351,12 @@ export default function SupplierModal({
             <Dialog.Footer gap={3} justifyContent="flex-end">
               <Dialog.ActionTrigger asChild>
                 <Button
-                  variant="subtle"
                   minW="120px"
                   width="50%"
-                  color="black"
-                  borderColor="black"
                   bg="white"
+                  color="gray.800"
+                  border="1px solid"
+                  borderColor="gray.200"
                 >
                   Cancel
                 </Button>

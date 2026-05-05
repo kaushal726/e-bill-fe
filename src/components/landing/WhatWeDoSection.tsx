@@ -124,11 +124,6 @@ export function WhatWeDoSection() {
                     shadow="md"
                     h="100%"
                     transition="all 0.3s"
-                    _hover={{
-                      shadow: 'xl',
-                      borderColor: 'purple.500',
-                      bg: 'gray.800',
-                    }}
                     position="relative"
                     overflow="hidden"
                   >

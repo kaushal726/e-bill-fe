@@ -94,7 +94,6 @@ export const ProfilePopover = ({ trigger }: { trigger: React.ReactNode }) => {
             <Box p={2.5}>
               <VStack align="stretch" gap={2}>
                 <Button
-                  variant="subtle"
                   justifyContent="flex-start"
                   fontSize="sm"
                   fontWeight="700"
@@ -108,7 +107,6 @@ export const ProfilePopover = ({ trigger }: { trigger: React.ReactNode }) => {
                   My Account
                 </Button>
                 <Button
-                  variant="subtle"
                   justifyContent="flex-start"
                   fontSize="sm"
                   fontWeight="700"

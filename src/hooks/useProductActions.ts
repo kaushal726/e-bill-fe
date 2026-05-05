@@ -8,7 +8,8 @@ const toast = ToasterUtil()
 
 export type ProductPayload = {
   name: string
-  brand?: string
+  brandId?: string
+  newBrandName?: string
   categoryId?: string
   newCategoryName?: string
   supplierId?: string
@@ -21,6 +22,9 @@ export type ProductPayload = {
   discountType?: 'percentage' | 'absolute'
   discountValue?: number
   minimumStock?: number
+  size?: string
+  color?: string
+  material?: string
 }
 
 export const useProductActions = () => {

@@ -24,6 +24,7 @@ import {
   PurchaseRoute,
   SalesRoute,
   CategoryRoute,
+  BrandRoute,
   HelpRoute,
   PaymentsReceivedRoute,
   DeliveryReceiptsRoute,
@@ -37,6 +38,8 @@ import {
   SubscriptionRoute,
   PaymentDuesRoute,
   PaymentAnalyticsRoute,
+  ProductAnalyticsRoute,
+  StaffProfileRoute,
 } from './importRoutes/index'
 import { useSelector } from 'react-redux'
 import Loading from '@/components/common/Loading'
@@ -68,6 +71,7 @@ const protectedRouteFactories: RouteFactory[] = [
   StaffRoute,
   SalesRoute,
   CategoryRoute,
+  BrandRoute,
   HelpRoute,
   AttendanceRoute,
   PriceListRoute,
@@ -84,6 +88,8 @@ const protectedRouteFactories: RouteFactory[] = [
   RolesRoute,
   PaymentDuesRoute,
   PaymentAnalyticsRoute,
+  ProductAnalyticsRoute,
+  StaffProfileRoute,
 ]
 
 const renderRouteGroup = (routeFactories: RouteFactory[]) =>

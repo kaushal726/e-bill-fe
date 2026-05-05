@@ -6,6 +6,8 @@ import { AxiosError } from 'axios'
 
 const toast = ToasterUtil()
 
+export type PaymentSplitPayload = { mode: 'cash' | 'card' | 'cheque' | 'upi'; amount: number }
+
 export type PurchaseCreatePayload = {
   supplierId?: string
   supplierName?: string
@@ -18,11 +20,13 @@ export type PurchaseCreatePayload = {
     discount?: number
   }>
   paidAmount?: number
+  paymentSplits?: PaymentSplitPayload[]
   note?: string
 }
 
 export type PurchaseUpdatePayload = {
   paidAmount?: number
+  paymentSplits?: PaymentSplitPayload[]
   note?: string
 }
 

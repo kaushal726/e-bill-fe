@@ -67,7 +67,6 @@ export const SettingsPopover = ({ trigger }: { trigger: React.ReactNode }) => {
                   py={2}
                   borderRadius="md"
                   cursor="pointer"
-                  _hover={{ bg: 'gray.50' }}
                   onClick={action.onClick}
                 >
                   <Box color={action.color ?? 'gray.600'}>{action.icon}</Box>

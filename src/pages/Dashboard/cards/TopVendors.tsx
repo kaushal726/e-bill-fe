@@ -29,7 +29,7 @@ export function TopVendors() {
         <Button size="xs" colorPalette="blue">
           By Quantity
         </Button>
-        <Button size="xs" variant="subtle">
+        <Button size="xs" bg="white" color="gray.700" border="1px solid" borderColor="gray.200">
           By Value
         </Button>
       </HStack>

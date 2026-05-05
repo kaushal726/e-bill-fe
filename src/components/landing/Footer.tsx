@@ -104,13 +104,7 @@ export function Footer() {
 
 function FooterLink({ to, children }: { to: string; children: React.ReactNode }) {
   return (
-    <Text
-      fontSize="sm"
-      color="gray.400"
-      _hover={{ color: 'white' }}
-      transition="color 0.2s"
-      asChild
-    >
+    <Text fontSize="sm" color="gray.400" transition="color 0.2s" asChild>
       <RouterLink to={to}>{children}</RouterLink>
     </Text>
   )
@@ -125,7 +119,6 @@ function FooterIconLink({ href, icon }: { href: string; icon: React.ReactNode })
       borderRadius="md"
       bg="gray.800"
       color="gray.400"
-      _hover={{ bg: 'gray.700', color: 'white' }}
       transition="all 0.2s"
       display="flex"
       alignItems="center"

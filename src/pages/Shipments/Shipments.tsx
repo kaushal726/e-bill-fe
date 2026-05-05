@@ -134,7 +134,7 @@ const Shipments = () => {
     {
       key: 'cost',
       header: 'Shipping Cost',
-      render: (s: Shipment) => `₹${s.cost}`,
+      render: (s: Shipment) => `${s.cost}`,
     },
     {
       key: 'status',

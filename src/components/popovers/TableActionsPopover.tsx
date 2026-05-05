@@ -55,7 +55,6 @@ export function TableActionsPopover({
     <Popover.Root positioning={{ placement: 'bottom-end', offset: { mainAxis: 8 } }}>
       <Popover.Trigger asChild>
         <Button
-          variant="subtle"
           size="sm"
           px="2"
           bg="teal.700"
@@ -63,7 +62,6 @@ export function TableActionsPopover({
           border="1px solid"
           borderColor="teal.700"
           borderRadius="10px"
-          _hover={{ bg: 'teal.800', borderColor: 'teal.800' }}
         >
           <MoreHorizontal size={18} />
         </Button>
@@ -93,7 +91,6 @@ export function TableActionsPopover({
                     borderRadius="md"
                     cursor="pointer"
                     bg={sortOpen ? 'teal.50' : 'transparent'}
-                    _hover={{ bg: 'teal.50' }}
                     onMouseEnter={() => setSortOpen(true)}
                     onMouseLeave={() => setSortOpen(false)}
                   >
@@ -128,9 +125,6 @@ export function TableActionsPopover({
                             cursor="pointer"
                             bg={active ? 'teal.700' : 'transparent'}
                             color={active ? 'white' : 'gray.800'}
-                            _hover={{
-                              bg: active ? 'teal.700' : 'teal.50',
-                            }}
                             onClick={() => {
                               const nextOrder = active && sortOrder === 'asc' ? 'desc' : 'asc'
 
@@ -188,15 +182,7 @@ function ActionItem({
   onClick?: () => void
 }) {
   return (
-    <HStack
-      px="3"
-      py="2"
-      borderRadius="md"
-      cursor="pointer"
-      color="gray.900"
-      _hover={{ bg: 'teal.50' }}
-      onClick={onClick}
-    >
+    <HStack px="3" py="2" borderRadius="md" cursor="pointer" color="gray.900" onClick={onClick}>
       <Icon size={16} />
       <Text fontSize="sm">{label}</Text>
     </HStack>

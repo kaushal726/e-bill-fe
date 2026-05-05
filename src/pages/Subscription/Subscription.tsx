@@ -31,14 +31,14 @@ const plans: Array<{
   {
     key: 'weekly',
     title: 'Weekly Plan',
-    priceLabel: 'â‚¹200 / week',
+    priceLabel: '200 / week',
     summary: 'Perfect for testing or short-term needs. Full access with 7-day duration.',
     accent: 'linear-gradient(135deg, #f97316 0%, #fb923c 100%)',
   },
   {
     key: 'monthly',
     title: 'Monthly Plan',
-    priceLabel: 'â‚¹900 / month',
+    priceLabel: '900 / month',
     summary:
       'Most popular choice. Unlimited invoices, inventory, customers, suppliers & staff management.',
     accent: 'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)',
@@ -47,8 +47,8 @@ const plans: Array<{
   {
     key: 'yearly',
     title: 'Yearly Plan',
-    priceLabel: 'â‚¹10,000 / year',
-    summary: 'Maximum savings. Commit for a year and save â‚¹800+ compared to monthly plans.',
+    priceLabel: '10,000 / year',
+    summary: 'Maximum savings. Commit for a year and save 800+ compared to monthly plans.',
     accent: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
     highlight: 'Maximum savings',
   },
@@ -344,7 +344,6 @@ const Subscription = () => {
                           size="lg"
                           bg={isSelected ? 'white' : 'gray.100'}
                           color={isSelected ? 'gray.950' : 'gray.800'}
-                          _hover={{ opacity: 0.92 }}
                           onClick={() => setSelectedPlan(plan.key)}
                         >
                           {isSelected ? 'Selected Plan' : `Select ${plan.title}`}
@@ -371,12 +370,7 @@ const Subscription = () => {
                         Click below to contact our team on WhatsApp. We're available 24/7 to help.
                       </Text>
                     </Box>
-                    <Button
-                      bg="green.600"
-                      color="white"
-                      _hover={{ bg: 'green.700' }}
-                      onClick={handleContactOnWhatsApp}
-                    >
+                    <Button bg="green.600" color="white" onClick={handleContactOnWhatsApp}>
                       <MessageCircle size={16} />
                       Contact on WhatsApp
                     </Button>

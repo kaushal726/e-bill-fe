@@ -17,7 +17,7 @@ export function ReceiveHistory() {
         </Table.Header>
 
         <Table.Body>
-          <Table.Row _hover={{ bg: 'gray.50' }} bg="white">
+          <Table.Row bg="white">
             <Table.Cell color="gray.800">2025-01-07</Table.Cell>
             <Table.Cell color="blue.600">PR-10136</Table.Cell>
             <Table.Cell color="gray.800">John Smith</Table.Cell>

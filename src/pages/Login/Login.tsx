@@ -182,17 +182,17 @@ const Login = () => {
                 color="white"
                 borderRadius="full"
                 px={6}
-                _hover={{ bg: 'whiteAlpha.300' }}
               >
                 <RouterLink to="/">Explore Landing Page</RouterLink>
               </Button>
               <Button
                 asChild
                 size="md"
-                variant="subtle"
-                borderRadius="full"
-                borderColor="whiteAlpha.400"
+                bg="whiteAlpha.100"
                 color="gray.200"
+                border="1px solid"
+                borderColor="whiteAlpha.400"
+                borderRadius="full"
                 px={6}
               >
                 <RouterLink to="/">View Product Highlights</RouterLink>
@@ -293,13 +293,7 @@ const Login = () => {
                     >
                       Secure login enabled
                     </Text>
-                    <Text
-                      asChild
-                      fontSize="xs"
-                      fontWeight="700"
-                      color="orange.400"
-                      _hover={{ color: 'orange.300' }}
-                    >
+                    <Text asChild fontSize="xs" fontWeight="700" color="orange.400">
                       <RouterLink to="/forgot-password">Forgot password?</RouterLink>
                     </Text>
                   </Flex>
@@ -312,7 +306,6 @@ const Login = () => {
                     borderRadius="xl"
                     bg="linear-gradient(135deg, #f97316 0%, #0ea5e9 100%)"
                     color="white"
-                    _hover={{ opacity: 0.92 }}
                   >
                     Login to Dashboard
                   </Button>

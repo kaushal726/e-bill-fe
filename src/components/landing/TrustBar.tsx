@@ -6,7 +6,7 @@ const MotionBox = motion.create(Box)
 
 const stats = [
   { icon: Users, value: '5,000+', label: 'Active Users', color: 'purple.400' },
-  { icon: TrendingUp, value: '₹100 Cr+', label: 'Managed Annually', color: 'purple.500' },
+  { icon: TrendingUp, value: '100 Cr+', label: 'Managed Annually', color: 'purple.500' },
   { icon: Zap, value: '24/7', label: 'Support', color: 'purple.300' },
   { icon: Shield, value: 'Enterprise', label: 'Grade Security', color: 'purple.400' },
 ]
@@ -35,14 +35,7 @@ export function TrustBar() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <HStack
-                    gap={3}
-                    p={4}
-                    borderRadius="xl"
-                    bg="gray.900"
-                    _hover={{ bg: 'gray.800' }}
-                    transition="all 0.2s"
-                  >
+                  <HStack gap={3} p={4} borderRadius="xl" bg="gray.900" transition="all 0.2s">
                     <Box color={stat.color}>
                       <Icon size={24} />
                     </Box>

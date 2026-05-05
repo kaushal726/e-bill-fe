@@ -418,7 +418,6 @@ const Payments = () => {
                           variant={typeFilter === t ? 'solid' : 'ghost'}
                           bg={typeFilter === t ? 'gray.900' : 'transparent'}
                           color={typeFilter === t ? 'white' : 'gray.700'}
-                          _hover={{ bg: typeFilter === t ? 'gray.900' : 'gray.100' }}
                           onClick={() => setTypeFilter(t)}
                           textTransform="capitalize"
                         >
@@ -534,7 +533,6 @@ const Payments = () => {
               color="white"
               h="38px"
               px={4}
-              _hover={{ bg: 'orange.600' }}
               onClick={() => {
                 setDefaultType('supplier')
                 setModalOpen(true)
@@ -553,7 +551,6 @@ const Payments = () => {
               color="white"
               h="38px"
               px={4}
-              _hover={{ bg: 'blue.700' }}
               onClick={() => {
                 setDefaultType('customer')
                 setModalOpen(true)
@@ -607,7 +604,6 @@ const Payments = () => {
               bg="white"
               border="1px solid"
               borderColor="gray.200"
-              _hover={{ bg: 'gray.50' }}
               disabled={!pagination.hasPrevPage}
             >
               Previous
@@ -622,7 +618,6 @@ const Payments = () => {
                   color={pg === pagination.currentPage ? 'white' : 'gray.700'}
                   border="1px solid"
                   borderColor={pg === pagination.currentPage ? 'teal.700' : 'teal.100'}
-                  _hover={{ bg: pg === pagination.currentPage ? 'teal.700' : 'teal.50' }}
                   onClick={() => setPage(pg)}
                 >
                   {pg}
@@ -635,7 +630,6 @@ const Payments = () => {
               bg="white"
               border="1px solid"
               borderColor="gray.200"
-              _hover={{ bg: 'gray.50' }}
               disabled={!pagination.hasNextPage}
             >
               Next

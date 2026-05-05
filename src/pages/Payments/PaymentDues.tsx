@@ -57,7 +57,6 @@ const PaymentDues = () => {
           onClick={() => navigate('/payments')}
           px={2}
           color="gray.600"
-          _hover={{ bg: 'gray.100', color: 'gray.900' }}
         >
           <HStack gap={1.5}>
             <ArrowLeft size={15} />
@@ -214,7 +213,6 @@ const PaymentDues = () => {
                   py={3}
                   borderBottom="1px solid"
                   borderColor="gray.50"
-                  _hover={{ bg: 'orange.50' }}
                 >
                   <VStack align="start" gap={0}>
                     <Text fontSize="sm" fontWeight="600" color="gray.800">
@@ -299,7 +297,6 @@ const PaymentDues = () => {
                   py={3}
                   borderBottom="1px solid"
                   borderColor="gray.50"
-                  _hover={{ bg: 'blue.50' }}
                 >
                   <VStack align="start" gap={0}>
                     <Text fontSize="sm" fontWeight="600" color="gray.800">

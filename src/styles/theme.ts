@@ -86,29 +86,8 @@ const config = defineConfig({
         },
         variants: {
           solid: {
-            _hover: {
-              transform: 'none',
-              boxShadow: 'none',
-              filter: 'none',
-            },
             _active: {
               transform: 'translateY(0)',
-            },
-          },
-          outline: {
-            border: '1px solid',
-            _hover: {
-              transform: 'none',
-              boxShadow: 'none',
-              filter: 'none',
-            },
-          },
-          ghost: {
-            bg: 'transparent',
-            _hover: {
-              transform: 'none',
-              boxShadow: 'none',
-              filter: 'none',
             },
           },
         },

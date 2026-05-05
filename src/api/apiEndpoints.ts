@@ -32,6 +32,8 @@ export const API_ENDPOINTS = {
     DELETE: '/products/deleteProduct',
     IMPORT: '/products/import',
     EXPORT: '/products/export',
+    ANALYTICS: '/products/analytics',
+    TEMPLATE: '/products/template/sample',
   },
 
   CATEGORY: {
@@ -42,6 +44,18 @@ export const API_ENDPOINTS = {
     DELETE: '/category/delete',
     IMPORT: '/category/import',
     EXPORT: '/category/export',
+    TEMPLATE: '/category/template/sample',
+  },
+
+  BRAND: {
+    BASE: '/brand/list',
+    SEARCH: '/brand/search',
+    CREATE: '/brand/create',
+    UPDATE: '/brand/update',
+    DELETE: '/brand/delete',
+    IMPORT: '/brand/import',
+    EXPORT: '/brand/export',
+    TEMPLATE: '/brand/template/sample',
   },
 
   SUPPLIERS: {
@@ -61,6 +75,7 @@ export const API_ENDPOINTS = {
     DELETE: '/staff/delete',
     EXPORT: '/staff/export',
     IMPORT: '/staff/import',
+    TEMPLATE: '/staff/template/sample',
   },
 
   PURCHASE: {
@@ -88,6 +103,9 @@ export const API_ENDPOINTS = {
     UPDATE: '/sale/update',
     DELETE: '/sale/delete',
     INVOICE: '/sale/invoice',
+    NEXT_INVOICE: '/sale/next-invoice-number',
+    STAFF_INCENTIVE_SUMMARY: '/sale/staff-incentive-summary',
+    STAFF_MONTHLY_INCENTIVE: '/sale/staff-incentive',
   },
 
   SALE_RETURN: {

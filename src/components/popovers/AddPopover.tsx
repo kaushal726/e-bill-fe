@@ -104,7 +104,6 @@ export const AddPopover = ({
                   py={2}
                   borderRadius="md"
                   cursor="pointer"
-                  _hover={{ bg: 'gray.50' }}
                   onClick={action.onClick}
                 >
                   <Box color="gray.600">{action.icon}</Box>

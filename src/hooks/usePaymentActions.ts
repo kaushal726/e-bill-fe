@@ -6,15 +6,18 @@ import { AxiosError } from 'axios'
 
 const toast = ToasterUtil()
 
+export type PaymentSplitPayload = { mode: 'cash' | 'card' | 'cheque' | 'upi'; amount: number }
+
 export type CreatePaymentPayload = {
   paidToType: 'supplier' | 'customer'
   supplierId?: string
   supplierName?: string
   customerId?: string
   customerName?: string
-  amount: number
-  paymentMode?: 'cash' | 'upi' | 'bank' | 'other'
+  amount?: number
+  paymentSplits?: PaymentSplitPayload[]
   note?: string
+  invoiceNumber?: string
 }
 
 export const usePaymentActions = () => {

@@ -16,6 +16,7 @@ import PurchasePaymentModal from '@/components/modals/PurchasePaymentModal'
 
 import { usePurchase, type PurchasePaymentStatus } from '@/hooks/usePurchase'
 import { usePurchaseActions } from '@/hooks/usePurchaseActions'
+import type { PaymentSplitRecord } from '@/hooks/usePayment'
 
 const paymentStatusColor = {
   pending: 'orange',
@@ -32,7 +33,7 @@ function Purchase() {
   const [paymentOpen, setPaymentOpen] = useState(false)
 
   const [activePurchaseId, setActivePurchaseId] = useState<string | null>(null)
-  const [activePaidAmount, setActivePaidAmount] = useState<number>(0)
+  const [activePaymentSplits, setActivePaymentSplits] = useState<PaymentSplitRecord[]>([])
   const [activeNote, setActiveNote] = useState('')
 
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -343,7 +344,7 @@ function Purchase() {
       icon: <FaEdit size="14px" color="#0f172a" />,
       onClick: (item: any) => {
         setActivePurchaseId(item._id)
-        setActivePaidAmount(item.paidAmount || 0)
+        setActivePaymentSplits(item.paymentSplits || [])
         setActiveNote(item.note || '')
         setPaymentOpen(true)
       },
@@ -601,8 +602,10 @@ function Purchase() {
                   h="34px"
                   px={3}
                   size="sm"
-                  variant="subtle"
-                  borderColor="gray.300"
+                  bg="white"
+                  color="gray.800"
+                  border="1px solid"
+                  borderColor="gray.200"
                   onClick={() => {
                     setSupplierIdFilter('')
                     setPaymentStatusFilter('')
@@ -626,7 +629,6 @@ function Purchase() {
                 color="white"
                 h="38px"
                 px={4}
-                _hover={{ bg: 'teal.800' }}
                 onClick={() => setCreateOpen(true)}
               >
                 <HStack gap={1.5}>
@@ -643,7 +645,6 @@ function Purchase() {
                 h="38px"
                 px={3}
                 loading={isExporting}
-                _hover={{ bg: 'green.700' }}
                 onClick={handleExport}
               >
                 <HStack gap={1}>
@@ -698,7 +699,6 @@ function Purchase() {
               bg="white"
               border="1px solid"
               borderColor="gray.200"
-              _hover={{ bg: 'gray.50' }}
               disabled={!pagination.hasPreviousPage}
             >
               Previous
@@ -713,7 +713,6 @@ function Purchase() {
                   color={pg === pagination.currentPage ? 'white' : 'gray.700'}
                   border="1px solid"
                   borderColor={pg === pagination.currentPage ? 'teal.700' : 'teal.100'}
-                  _hover={{ bg: pg === pagination.currentPage ? 'teal.700' : 'teal.50' }}
                   onClick={() => setPage(pg)}
                 >
                   {pg}
@@ -726,7 +725,6 @@ function Purchase() {
               bg="white"
               border="1px solid"
               borderColor="gray.200"
-              _hover={{ bg: 'gray.50' }}
               disabled={!pagination.hasNextPage}
             >
               Next
@@ -745,7 +743,7 @@ function Purchase() {
         open={paymentOpen}
         onClose={() => setPaymentOpen(false)}
         purchaseId={activePurchaseId ?? undefined}
-        defaultPaidAmount={activePaidAmount}
+        defaultPaymentSplits={activePaymentSplits}
         defaultNote={activeNote}
       />
 

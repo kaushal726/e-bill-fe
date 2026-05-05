@@ -1,13 +1,20 @@
 ﻿import { useEffect, useState } from 'react'
-import { Dialog, Portal, Button, Input, Field, useMediaQuery } from '@chakra-ui/react'
+import { Dialog, Portal, Button, Input, Field, useMediaQuery, Box } from '@chakra-ui/react'
 import { X } from 'lucide-react'
 import { useSaleActions } from '@/hooks/useSaleActions'
+import {
+  SplitPaymentInput,
+  DEFAULT_SPLITS,
+  getSplitsPayload,
+  type PaymentSplit,
+} from '@/components/common/SplitPaymentInput'
+import type { PaymentSplitRecord } from '@/hooks/usePayment'
 
 interface SalePaymentModalProps {
   open: boolean
   onClose: () => void
   saleId?: string
-  defaultPaidAmount?: number
+  defaultPaymentSplits?: PaymentSplitRecord[]
   defaultNote?: string
 }
 
@@ -15,24 +22,33 @@ export default function SalePaymentModal({
   open,
   onClose,
   saleId,
-  defaultPaidAmount,
+  defaultPaymentSplits,
   defaultNote,
 }: SalePaymentModalProps) {
-  const [paidAmount, setPaidAmount] = useState('0')
+  const [splits, setSplits] = useState<PaymentSplit[]>(DEFAULT_SPLITS)
   const [note, setNote] = useState('')
   const { updateSale } = useSaleActions()
 
   useEffect(() => {
-    setPaidAmount(String(defaultPaidAmount ?? 0))
-    setNote(defaultNote || '')
-  }, [defaultPaidAmount, defaultNote, open])
+    if (open) {
+      if (defaultPaymentSplits && defaultPaymentSplits.length > 0) {
+        setSplits(
+          DEFAULT_SPLITS.map((d) => {
+            const existing = defaultPaymentSplits.find((s) => s.mode === d.mode)
+            return { ...d, amount: existing ? String(existing.amount) : '' }
+          }),
+        )
+      } else {
+        setSplits(DEFAULT_SPLITS)
+      }
+      setNote(defaultNote || '')
+    }
+  }, [open, defaultPaymentSplits, defaultNote])
 
   function handleSubmit() {
     if (!saleId) return
-    updateSale.mutate(
-      { saleId, payload: { paidAmount: Number(paidAmount || 0), note } },
-      { onSuccess: onClose },
-    )
+    const paymentSplits = getSplitsPayload(splits)
+    updateSale.mutate({ saleId, payload: { paymentSplits, note } }, { onSuccess: onClose })
   }
 
   const [isLarge] = useMediaQuery(['(min-width: 540px)'])
@@ -72,19 +88,9 @@ export default function SalePaymentModal({
             </Dialog.Header>
 
             <Dialog.Body pt={4}>
-              <Field.Root mb={3}>
-                <Field.Label color="gray.700" fontWeight="600">
-                  Paid Amount
-                </Field.Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={paidAmount}
-                  onChange={(e) => setPaidAmount(e.target.value)}
-                  bg="white"
-                  borderColor="gray.200"
-                />
-              </Field.Root>
+              <Box mb={3}>
+                <SplitPaymentInput label="Payment Breakdown" splits={splits} onChange={setSplits} />
+              </Box>
 
               <Field.Root>
                 <Field.Label color="gray.700" fontWeight="600">
@@ -102,7 +108,13 @@ export default function SalePaymentModal({
 
             <Dialog.Footer gap={3} justifyContent="flex-end">
               <Dialog.ActionTrigger asChild>
-                <Button variant="subtle" width="50%" color="gray.700" borderColor="gray.300">
+                <Button
+                  width="50%"
+                  bg="white"
+                  color="gray.800"
+                  border="1px solid"
+                  borderColor="gray.200"
+                >
                   Cancel
                 </Button>
               </Dialog.ActionTrigger>

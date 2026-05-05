@@ -1,13 +1,20 @@
 ﻿import { useEffect, useState } from 'react'
-import { Dialog, Portal, Button, Input, Field, Text, useMediaQuery } from '@chakra-ui/react'
+import { Dialog, Portal, Button, Input, Field, Text, useMediaQuery, Box } from '@chakra-ui/react'
 import { X } from 'lucide-react'
 import { usePurchaseActions } from '@/hooks/usePurchaseActions'
+import {
+  SplitPaymentInput,
+  DEFAULT_SPLITS,
+  getSplitsPayload,
+  type PaymentSplit,
+} from '@/components/common/SplitPaymentInput'
+import type { PaymentSplitRecord } from '@/hooks/usePayment'
 
 interface PurchasePaymentModalProps {
   open: boolean
   onClose: () => void
   purchaseId?: string
-  defaultPaidAmount?: number
+  defaultPaymentSplits?: PaymentSplitRecord[]
   defaultNote?: string
 }
 
@@ -15,33 +22,33 @@ export default function PurchasePaymentModal({
   open,
   onClose,
   purchaseId,
-  defaultPaidAmount,
+  defaultPaymentSplits,
   defaultNote,
 }: PurchasePaymentModalProps) {
-  const [paidAmount, setPaidAmount] = useState('0')
+  const [splits, setSplits] = useState<PaymentSplit[]>(DEFAULT_SPLITS)
   const [note, setNote] = useState('')
   const { updatePurchase } = usePurchaseActions()
 
   useEffect(() => {
-    setPaidAmount(String(defaultPaidAmount ?? 0))
-    setNote(defaultNote || '')
-  }, [defaultPaidAmount, defaultNote, open])
+    if (open) {
+      if (defaultPaymentSplits && defaultPaymentSplits.length > 0) {
+        setSplits(
+          DEFAULT_SPLITS.map((d) => {
+            const existing = defaultPaymentSplits.find((s) => s.mode === d.mode)
+            return { ...d, amount: existing ? String(existing.amount) : '' }
+          }),
+        )
+      } else {
+        setSplits(DEFAULT_SPLITS)
+      }
+      setNote(defaultNote || '')
+    }
+  }, [open, defaultPaymentSplits, defaultNote])
 
   function handleSubmit() {
     if (!purchaseId) return
-
-    updatePurchase.mutate(
-      {
-        purchaseId,
-        payload: {
-          paidAmount: Number(paidAmount || 0),
-          note,
-        },
-      },
-      {
-        onSuccess: onClose,
-      },
-    )
+    const paymentSplits = getSplitsPayload(splits)
+    updatePurchase.mutate({ purchaseId, payload: { paymentSplits, note } }, { onSuccess: onClose })
   }
 
   const [isLarge] = useMediaQuery(['(min-width: 540px)'])
@@ -71,7 +78,7 @@ export default function PurchasePaymentModal({
           >
             <Dialog.Header px={1}>
               <Dialog.Title fontSize="xl" fontWeight="800" color="gray.900" letterSpacing="-0.02em">
-                Update Purchase
+                Update Purchase Payment
               </Dialog.Title>
 
               <Dialog.CloseTrigger asChild>
@@ -83,22 +90,12 @@ export default function PurchasePaymentModal({
 
             <Dialog.Body pt={4}>
               <Text fontSize="sm" color="gray.600" mb={4}>
-                Only paid amount and note can be updated for an existing purchase.
+                Update how this purchase payment was split across payment modes.
               </Text>
 
-              <Field.Root mb={3}>
-                <Field.Label color="gray.700" fontWeight="600">
-                  Paid Amount
-                </Field.Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={paidAmount}
-                  onChange={(e) => setPaidAmount(e.target.value)}
-                  bg="white"
-                  borderColor="gray.200"
-                />
-              </Field.Root>
+              <Box mb={3}>
+                <SplitPaymentInput label="Payment Breakdown" splits={splits} onChange={setSplits} />
+              </Box>
 
               <Field.Root>
                 <Field.Label color="gray.700" fontWeight="600">
@@ -117,11 +114,12 @@ export default function PurchasePaymentModal({
             <Dialog.Footer gap={3} justifyContent="flex-end">
               <Dialog.ActionTrigger asChild>
                 <Button
-                  variant="subtle"
                   minW="120px"
                   width="50%"
-                  color="gray.700"
-                  borderColor="gray.300"
+                  bg="white"
+                  color="gray.800"
+                  border="1px solid"
+                  borderColor="gray.200"
                 >
                   Cancel
                 </Button>

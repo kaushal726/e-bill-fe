@@ -137,7 +137,6 @@ export function ScreenshotsSection() {
                   borderRadius="2xl"
                   bg="gray.900"
                   shadow="md"
-                  _hover={{ shadow: 'xl', transform: 'translateY(-4px)' }}
                   transition="all 0.3s"
                 >
                   <Box p={4} borderRadius="xl" bgGradient={device.gradient} color="white">

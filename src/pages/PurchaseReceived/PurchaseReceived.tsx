@@ -126,7 +126,7 @@ const PurchaseReceived = () => {
     {
       key: 'totalCost',
       header: 'Total Cost',
-      render: (r: PurchaseReceivedItem) => `₹${r.totalCost}`,
+      render: (r: PurchaseReceivedItem) => `${r.totalCost}`,
     },
     {
       key: 'status',

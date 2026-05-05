@@ -7,6 +7,11 @@ export type SupplierItem = {
   name: string
   mobileNumber: string
   address?: string
+  gstNumber?: string
+  bankName?: string
+  accountHolderName?: string
+  bankAccountNumber?: string
+  ifscCode?: string
   pendingAmount?: number
   totalPurchaseAmount?: number
   createdAt?: string

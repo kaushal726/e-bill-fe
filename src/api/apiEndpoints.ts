@@ -5,7 +5,8 @@ export const API_ENDPOINTS = {
     SIGNUP: '/auth/signup',
     VIEW: '/auth/view',
     EDIT: '/auth/edit',
-    FORGOT_PASSWORD: '/auth/forgot-password',
+    FORGOT_PASSWORD_REQUEST: '/auth/forgot-password/request',
+    FORGOT_PASSWORD_RESET: '/auth/forgot-password/reset',
     SUBSCRIPTION: '/auth/subscription',
   },
 

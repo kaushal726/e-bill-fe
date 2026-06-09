@@ -1,7 +1,8 @@
 import { Flex, HStack, Text, IconButton, Button, Box } from '@chakra-ui/react'
 import { useEffect, useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { Plus, Trash2, Edit2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
+import { FaEdit, FaTrash } from '@/components/icons'
 
 import { setHeader, clearHeader } from '@/redux/slices/headerSlice'
 import { CommonTable } from '@/components/common/CommonTable'
@@ -208,12 +209,12 @@ const Bill = () => {
           actions={[
             {
               label: 'Edit',
-              icon: Edit2,
+              icon: <FaEdit size="15px" />,
               onClick: (row) => handleEditBill(row),
             },
             {
               label: 'Delete',
-              icon: Trash2,
+              icon: <FaTrash size="15px" />,
               onClick: (row) => handleDeleteBill(row._id),
             },
           ]}

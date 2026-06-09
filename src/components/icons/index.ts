@@ -15,7 +15,8 @@ export {
 
 export { LuChevronLeft, LuChevronRight } from 'react-icons/lu'
 export { IoIosSearch } from 'react-icons/io'
-export { FaFilter, FaPrint, FaPlusCircle, FaEdit, FaTrash } from 'react-icons/fa'
+export { FaFilter, FaPrint, FaPlusCircle } from 'react-icons/fa'
+export { FaEdit, FaTrash } from './ActionIcons'
 export { BsLayoutSidebarInset } from 'react-icons/bs'
 export { RxDashboard, RxPerson, RxBox, RxGear, RxQuestionMarkCircled, RxHome } from 'react-icons/rx'
 export { FiUsers, FiTruck, FiShoppingBag } from 'react-icons/fi'

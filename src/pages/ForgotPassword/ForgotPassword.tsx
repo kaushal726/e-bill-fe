@@ -215,6 +215,7 @@ const ForgotPassword = () => {
                       },
                     })}
                     type="email"
+                    autoComplete="email"
                     placeholder="you@example.com"
                     {...fieldStyles}
                   />
@@ -245,7 +246,9 @@ const ForgotPassword = () => {
                       required: 'Reset code is required',
                       pattern: { value: /^\d{6}$/, message: 'Code must be 6 digits' },
                     })}
+                    type="text"
                     inputMode="numeric"
+                    autoComplete="one-time-code"
                     maxLength={6}
                     placeholder="6-digit code"
                     letterSpacing="0.4em"
@@ -263,6 +266,7 @@ const ForgotPassword = () => {
                       required: 'New password is required',
                       minLength: { value: 8, message: 'Password must be at least 8 characters' },
                     })}
+                    autoComplete="new-password"
                     placeholder="Enter new password"
                     {...fieldStyles}
                   />
@@ -278,6 +282,7 @@ const ForgotPassword = () => {
                       validate: (value) =>
                         value === resetForm.watch('password') || 'Passwords do not match',
                     })}
+                    autoComplete="new-password"
                     placeholder="Re-enter new password"
                     {...fieldStyles}
                   />
